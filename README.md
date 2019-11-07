@@ -1,2 +1,2 @@
-# terraform-provider-activedirectory
-Terraform AD provider
+# Terraform Active Directory Provider
+readme is work in progress... :)

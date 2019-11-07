@@ -10,7 +10,7 @@ import (
 // Computer - main struct to hold ad computer object data
 type Computer struct {
 	Name           string
-	SAMAccountName string
+	DN string
 	Description    string
 }
 
@@ -46,7 +46,40 @@ func (api *API) GetComputerByName(name string, ou string) (computer *Computer, e
 
 	return &Computer{
 		Name:           sr.Entries[0].GetAttributeValue("cn"),
-		SAMAccountName: sr.Entries[0].GetAttributeValue("distinguishedName"),
+		DN: sr.Entries[0].GetAttributeValue("distinguishedName"),
 		Description:    sr.Entries[0].GetAttributeValue("description"),
 	}, nil
+}
+
+// CreateComputer create a new ad computer object.
+func (api *API) CreateComputer (computer Computer) (computer *Computer, err error) {
+	addRequest := ldap.NewAddRequest(dnName, nil)
+	addRequest.Attribute("objectClass", []string{"computer"})
+	addRequest.Attribute("name", []string{computer.Name})
+	addRequest.Attribute("sAMAccountName", []string{computer.Name + "$"})
+	addRequest.Attribute("userAccountControl", []string{"4096"})
+	if computer.Description != "" {
+		addRequest.Attribute("description", []string{computer.Description})
+	}
+	err := adConn.Add(addRequest)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// UpdateComputer
+func (api *API) UpdateComputer (computer Computer) (computer *Computer, err error) {
+
+}
+
+// DeleteComputer
+func (api *API) DeleteComputer (dnName string) (computer *Computer, err error) {
+	log.Info("Deleting AD computer object %s", dnName)
+	req := ldap.NewDelRequest(dnName, nil)
+	
+	if err := api.client.Del(req); err != nil {
+		return err
+	}
+	return nil
 }

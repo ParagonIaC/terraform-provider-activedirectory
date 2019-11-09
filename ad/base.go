@@ -35,15 +35,15 @@ func (api *API) Connect(username string, password string) (err error) {
 
 	dial, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.ip, 389))
 	if err != nil {
-		log.Error("Connection to %s:%d failed: %s", api.ip, 389, err)
+		log.Errorf("Connection to %s:%d failed: %s", api.ip, 389, err)
 		return err
 	}
 
 	if err = dial.Bind(username, password); err != nil {
-		log.Error("Authentication failed: %s", err)
+		log.Errorf("Authentication failed: %s", err)
 		return err
 	}
 
-	log.Debug("AD connection successful for user: %s", api.username)
+	log.Debugf("AD connection successful for user: %s", api.username)
 	return nil
 }

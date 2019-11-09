@@ -10,6 +10,16 @@ import (
 // APIInterface is the basic interface for AD API
 type APIInterface interface {
 	connect() error
+
+	GetComputersByLDAPFilter(string, string, []string) ([]*Computer, error)
+	GetComputerByDN(string, string, []string) (*Computer, error)
+
+	CreateComputer(*Computer, string) error
+
+	UpdateComputerOU(*Computer, string) error
+	UpdateComputerAttributes(*Computer, []*ldap.EntryAttribute) error
+
+	DeleteComputer(dn string) error
 }
 
 // API is the basic struct which should implement the APIInterface

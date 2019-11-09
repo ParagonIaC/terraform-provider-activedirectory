@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/adlerrobert/terraform-provider-ad/ad"
+	ad "github.com/adlerrobert/terraform-provider-activedirectory/ad"
 	"github.com/hashicorp/terraform-plugin-sdk/plugin"
 )
 

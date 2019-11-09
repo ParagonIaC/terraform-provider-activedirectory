@@ -2,6 +2,7 @@ package activedirectory
 
 import (
 	"fmt"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/ldap.v3"
@@ -14,41 +15,45 @@ type Computer struct {
 	Attributes []*ldap.EntryAttribute
 }
 
-// GetComputerByName queries AD for a sepcific computer account
-func (api *API) GetComputerByName(name string, ou string) (computer *Computer, err error) {
+// GetComputersByName queries AD for a sepcific computer account
+func (api *API) GetComputersByName(name string, ou string, attributes []string) (computer []*Computer, err error) {
 	if name == "" {
 		return nil, fmt.Errorf("no computer name specified")
 	}
 
+	// if no ou is specified, sear whole domain
 	if ou == "" {
-		// TODO
-		// ou = api.domain
+		tmp := strings.Split(api.domain, ".")
+		ou = fmt.Sprintf("dc=%s", strings.Join(tmp, ",dc="))
 	}
 
-	searchRequest := ldap.NewSearchRequest(
-		ou, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		"(&(objectClass=Computer)(cn="+name+"))",
-		[]string{"cn", "distinguishedName", "description"},
-		nil,
+	// prepare for search request
+	ldapFilter := "(&(objectClass=Computer)(cn=" + name + "))"
+	attributes = append(attributes, "cn", "distinguishedName")
+
+	// create search request
+	searchRequest := ldap.NewSearchRequest(ou,
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
+		ldapFilter, attributes, nil,
 	)
 
-	sr, err := api.client.Search(searchRequest)
+	// performing ldap search
+	result, err := api.client.Search(searchRequest)
 	if err != nil {
 		log.Error("Error will searching for computer %s: %s:", name, err)
 		return nil, err
 	}
 
-	if len(sr.Entries) == 0 {
-		return nil, fmt.Errorf("Computer with the name %s was not found under %s", name, ou)
-	} else if len(sr.Entries) > 1 {
-		return nil, fmt.Errorf("More than one computer with the name %s under %s", name, ou)
+	computer = make([]*Computer, len(result.Entries))
+	for i, entry := range result.Entries {
+		computer[i] = &Computer{
+			Name:       entry.GetAttributeValue("cn"),
+			DN:         entry.GetAttributeValue("distinguishedName"),
+			Attributes: entry.Attributes,
+		}
 	}
 
-	return &Computer{
-		Name:       sr.Entries[0].GetAttributeValue("cn"),
-		DN:         sr.Entries[0].GetAttributeValue("distinguishedName"),
-		Attributes: sr.Entries[0].Attributes,
-	}, nil
+	return computer, nil
 }
 
 // CreateComputer create a new ad computer object.

@@ -1,9 +1,9 @@
 package activedirectory
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	log "github.com/sirupsen/logrus"
 )
 
 // Provider for terraform active directory
@@ -42,7 +42,7 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			// "ad_computer_to_ou": resourceComputerToOU(),
+			"ad_computer": resourceADComputer(),
 		},
 
 		ConfigureFunc: providerConfigure,
@@ -53,7 +53,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	api := NewAPI(d.Get("ip").(string), d.Get("domain").(string))
 
 	log.Infof("Connecting to AD %s (%s) as user %s.", d.Get("domain").(string), d.Get("ip").(string), d.Get("user").(string))
-	
+
 	if err := api.Connect(d.Get("user").(string), d.Get("password").(string)); err != nil {
 		return nil, err
 	}

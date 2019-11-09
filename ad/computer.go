@@ -180,12 +180,12 @@ func (api *API) UpdateComputerAttributes(computer *Computer, attributes []*ldap.
 }
 
 // DeleteComputer delete an existing computer object.
-//	computer - computer object which is to be deleted
-func (api *API) DeleteComputer(computer Computer) error {
-	log.Infof("Deleting AD computer object %s", computer.DN)
+//	dn - dn of computer object which is to be deleted
+func (api *API) DeleteComputer(dn string) error {
+	log.Infof("Deleting AD computer object %s", dn)
 
 	// create ldap delete request
-	req := ldap.NewDelRequest(computer.DN, nil)
+	req := ldap.NewDelRequest(dn, nil)
 
 	// delete object from ldap
 	if err := api.client.Del(req); err != nil {

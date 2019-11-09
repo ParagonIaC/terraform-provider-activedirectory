@@ -28,7 +28,7 @@ func (api *API) GetComputersByLDAPFilter(ldapFilter string, baseOU string, attri
 		return nil, fmt.Errorf("ldap filter is not meant to search for ad computer objects")
 	}
 
-	log.Infof("Searching ad computer object in ou %s with the ldap filter: ", baseOU, ldapFilter)
+	log.Infof("Searching ad computer object in ou %s with the ldap filter: %s", baseOU, ldapFilter)
 
 	// if no ou is specified, sear whole domain
 	if baseOU == "" {
@@ -49,7 +49,7 @@ func (api *API) GetComputersByLDAPFilter(ldapFilter string, baseOU string, attri
 	// performing ldap search
 	result, err := api.client.Search(searchRequest)
 	if err != nil {
-		log.Error("Error will searching for computer: %s:", err)
+		log.Errorf("Error will searching for computer: %s:", err)
 		return nil, err
 	}
 

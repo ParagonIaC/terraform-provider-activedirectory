@@ -15,35 +15,45 @@ type Computer struct {
 	Attributes []*ldap.EntryAttribute
 }
 
-// GetComputersByName queries AD for a sepcific computer account
-func (api *API) GetComputersByName(name string, ou string, attributes []string) (computer []*Computer, err error) {
-	if name == "" {
-		return nil, fmt.Errorf("no computer name specified")
+// GetComputersByLDAPFilter queries AD for a computer account with the help of an LDAP filter
+//	ldapFilter - string value, has to be a valid ldap filter to search ad computer objects,must contain "(objectClass=Computer)"
+// 	ou - string value, the base ou for the search
+// 	attributesToGet - list of attributes we want the search to return
+func (api *API) GetComputersByLDAPFilter(ldapFilter string, baseOU string, attributesToGet []string) (computer []*Computer, err error) {
+	if ldapFilter == "" {
+		return nil, fmt.Errorf("no filter specified")
 	}
 
+	if strings.Index(ldapFilter, "(objectClass=Computer)") == 0 {
+		return nil, fmt.Errorf("ldap filter is not meant to search for ad computer objects")
+	}
+
+	log.Infof("Searching ad computer object in ou %s with the ldap filter: %s", baseOU, ldapFilter)
+
 	// if no ou is specified, sear whole domain
-	if ou == "" {
+	if baseOU == "" {
 		tmp := strings.Split(api.domain, ".")
-		ou = fmt.Sprintf("dc=%s", strings.Join(tmp, ",dc="))
+		baseOU = fmt.Sprintf("dc=%s", strings.Join(tmp, ",dc="))
 	}
 
 	// prepare for search request
-	ldapFilter := "(&(objectClass=Computer)(cn=" + name + "))"
-	attributes = append(attributes, "cn", "distinguishedName")
+	// ldapFilter := "(&(objectClass=Computer)(cn=" + name + "))"
+	attributesToGet = append(attributesToGet, "cn", "distinguishedName")
 
 	// create search request
-	searchRequest := ldap.NewSearchRequest(ou,
+	searchRequest := ldap.NewSearchRequest(baseOU,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		ldapFilter, attributes, nil,
+		ldapFilter, attributesToGet, nil,
 	)
 
 	// performing ldap search
 	result, err := api.client.Search(searchRequest)
 	if err != nil {
-		log.Error("Error will searching for computer %s: %s:", name, err)
+		log.Errorf("Error will searching for computer: %s:", err)
 		return nil, err
 	}
 
+	// translate returned values to Computer objects
 	computer = make([]*Computer, len(result.Entries))
 	for i, entry := range result.Entries {
 		computer[i] = &Computer{
@@ -56,7 +66,35 @@ func (api *API) GetComputersByName(name string, ou string, attributes []string) 
 	return computer, nil
 }
 
+// GetComputerByDN queries AD for a sepcific computer account by its distinguished name.
+//	dn - string value, distinguished name of the computer object
+//	ou - string value, the base ou for the search
+// 	attributesToGet - list of attributes we want the search to return
+func (api *API) GetComputerByDN(dn string, baseOU string, attributesToGet []string) (*Computer, error) {
+	if dn == "" {
+		return nil, fmt.Errorf("no computer name specified")
+	}
+
+	// prepare for search request
+	ldapFilter := "(&(objectClass=Computer)(dn=" + dn + "))"
+
+	// tryoing to get computer account
+	ret, err := api.GetComputersByLDAPFilter(ldapFilter, baseOU, attributesToGet)
+	if err != nil {
+		return nil, err
+	}
+
+	// ldap filter with dn should return exactly one computer (if exists)
+	if len(ret) != 1 {
+		return nil, fmt.Errorf("computer with dn %s not found", dn)
+	}
+
+	return ret[0], nil
+}
+
 // CreateComputer create a new ad computer object.
+//	computer - computer object which is to be created
+//	ou - string value, the ou where the computer object should be created
 func (api *API) CreateComputer(computer *Computer, ou string) error {
 	log.Infof("Creating ad computer object %s in ou %s", computer.Name, ou)
 
@@ -87,11 +125,13 @@ func (api *API) CreateComputer(computer *Computer, ou string) error {
 }
 
 // UpdateComputerOU moves an existing AD computer object to a new OU.
+//	computer - computer object which is to be moved to a new OU
+//	ou - string value, the ou where the computer object should be moved to
 func (api *API) UpdateComputerOU(computer *Computer, ou string) error {
 	log.Infof("moving ad computer object %s to ou %s", computer.Name, ou)
 
 	// specific uid of the computer
-	computerUID := fmt.Sprintf("uid=%", computer.Name)
+	computerUID := fmt.Sprintf("uid=%s", computer.Name)
 
 	// move computer object to new ou
 	req := ldap.NewModifyDNRequest(computer.DN, computerUID, true, ou)
@@ -106,6 +146,8 @@ func (api *API) UpdateComputerOU(computer *Computer, ou string) error {
 }
 
 // UpdateComputerAttributes updates the attributes of an existing AD computer.
+//	computer - computer object which is to be updated
+//	attributes - list of ldap.EntryAttribute which should be updated
 func (api *API) UpdateComputerAttributes(computer *Computer, attributes []*ldap.EntryAttribute) error {
 	log.Infof("updaing attributes for ad computer objects %s", computer.Name)
 
@@ -138,6 +180,7 @@ func (api *API) UpdateComputerAttributes(computer *Computer, attributes []*ldap.
 }
 
 // DeleteComputer delete an existing computer object.
+//	computer - computer object which is to be deleted
 func (api *API) DeleteComputer(computer Computer) error {
 	log.Infof("Deleting AD computer object %s", computer.DN)
 

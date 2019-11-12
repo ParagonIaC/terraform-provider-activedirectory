@@ -22,18 +22,19 @@ func resourceADComputer() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"domain": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
 			"ou_distinguished_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				// this is to ignore case in ldap distinguished name
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					if strings.ToLower(old) == strings.ToLower(new) {
+						return true
+					}
+					return false
+				},
 			},
 			"description": {
-				Type:     schema.TypeList,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:     schema.TypeString,
 				Optional: true,
 				Default:  nil,
 			},
@@ -45,13 +46,18 @@ func resourceADComputer() *schema.Resource {
 func resourceADComputerCreate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(APIInterface)
 
+	desc := []string{}
+	if d.Get("description").(string) != "" {
+		desc = append(desc, d.Get("description").(string))
+	}
+
 	// create computer object
 	computer := &Computer{
 		Name: d.Get("computer_name").(string),
 		Attributes: []*ldap.EntryAttribute{
 			&ldap.EntryAttribute{
 				Name:   "description",
-				Values: d.Get("description").([]string),
+				Values: desc,
 			},
 		},
 	}
@@ -88,21 +94,9 @@ func resourceADComputerRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	// create ou and domain names out of computer's distinguished name
+	// create ou name out of computer's distinguished name
 	tmp := strings.Split(computer.DN, ",")
 	ou := strings.Join(tmp[1:], ",")
-	tmpDomain := []string{}
-	for _, str := range tmp {
-		if strings.Index(str, "dc=") > 0 {
-			tmpDomain = append(tmpDomain, str)
-		}
-	}
-	domain := strings.Join(tmpDomain, ".")
-
-	// set 'domain' field
-	if err = d.Set("domain", domain); err != nil {
-		return err
-	}
 
 	// set 'ou_distinguished_name' field
 	if err = d.Set("ou_distinguished_name", ou); err != nil {
@@ -110,12 +104,17 @@ func resourceADComputerRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// set 'description' field
-	description := []string{}
+	description := ""
 	for _, attr := range computer.Attributes {
 		if attr.Name == "description" {
-			description = attr.Values
+			if len(attr.Values[0]) != 0 {
+				description = attr.Values[0]
+			} else {
+				description = ""
+			}
 		}
 	}
+
 	if err = d.Set("description", description); err != nil {
 		return err
 	}
@@ -140,10 +139,15 @@ func resourceADComputerUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	// check description
 	if d.HasChange("description") {
+		desc := []string{}
+		if d.Get("description").(string) != "" {
+			desc = append(desc, d.Get("description").(string))
+		}
+
 		attr := []*ldap.EntryAttribute{
 			&ldap.EntryAttribute{
 				Name:   "description",
-				Values: d.Get("description").([]string),
+				Values: desc,
 			},
 		}
 
@@ -161,6 +165,8 @@ func resourceADComputerUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err := api.UpdateComputerOU(computer, d.Get("ou_distinguished_name").(string)); err != nil {
 			return err
 		}
+
+		d.SetId(computer.DN)
 	}
 
 	d.Partial(false)

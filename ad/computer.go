@@ -76,7 +76,12 @@ func (api *API) GetComputerByDN(dn string, baseOU string, attributesToGet []stri
 	}
 
 	// prepare for search request
-	ldapFilter := "(&(objectClass=Computer)(dn=" + dn + "))"
+	ldapFilter := "(&(objectClass=Computer)(DistinguishedName=" + dn + "))"
+
+	if baseOU == "" {
+		pos := strings.Index(dn, ",")
+		baseOU = dn[(pos + 1):]
+	}
 
 	// tryoing to get computer account
 	ret, err := api.GetComputersByLDAPFilter(ldapFilter, baseOU, attributesToGet)
@@ -86,7 +91,7 @@ func (api *API) GetComputerByDN(dn string, baseOU string, attributesToGet []stri
 
 	// ldap filter with dn should return exactly one computer (if exists)
 	if len(ret) != 1 {
-		return nil, fmt.Errorf("computer with dn %s not found", dn)
+		return nil, fmt.Errorf("computer with dn %s not found in %s", dn, baseOU)
 	}
 
 	return ret[0], nil
@@ -131,7 +136,7 @@ func (api *API) UpdateComputerOU(computer *Computer, ou string) error {
 	log.Infof("moving ad computer object %s to ou %s", computer.Name, ou)
 
 	// specific uid of the computer
-	computerUID := fmt.Sprintf("uid=%s", computer.Name)
+	computerUID := fmt.Sprintf("cn=%s", computer.Name)
 
 	// move computer object to new ou
 	req := ldap.NewModifyDNRequest(computer.DN, computerUID, true, ou)
@@ -149,7 +154,7 @@ func (api *API) UpdateComputerOU(computer *Computer, ou string) error {
 //	computer - computer object which is to be updated
 //	attributes - list of ldap.EntryAttribute which should be updated
 func (api *API) UpdateComputerAttributes(computer *Computer, attributes []*ldap.EntryAttribute) error {
-	log.Infof("updaing attributes for ad computer objects %s", computer.Name)
+	log.Infof("updating attributes for ad computer objects %s", computer.Name)
 
 	req := ldap.NewModifyRequest(computer.DN, nil)
 

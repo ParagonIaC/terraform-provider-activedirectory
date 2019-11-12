@@ -42,7 +42,7 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"ad_computer": resourceADComputer(),
+			"activedirectory_computer": resourceADComputer(),
 		},
 
 		ConfigureFunc: providerConfigure,

@@ -8,5 +8,8 @@
 # .tfvars files
 *.tfvars
 
+# testing stuff
+**/.testing/*
+
 # provider file
 terraform-provider-activedirectory

@@ -9,7 +9,7 @@ import (
 
 // APIInterface is the basic interface for AD API
 type APIInterface interface {
-	connect() error
+	Connect(string, string) error
 
 	GetComputersByLDAPFilter(string, string, []string) ([]*Computer, error)
 	GetComputerByDN(string, string, []string) (*Computer, error)
@@ -43,13 +43,13 @@ func (api *API) Connect(username string, password string) (err error) {
 	api.username = fmt.Sprintf("%s@%s", username, api.domain)
 	api.password = password
 
-	dial, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.ip, 389))
+	api.client, err = ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.ip, 389))
 	if err != nil {
 		log.Errorf("Connection to %s:%d failed: %s", api.ip, 389, err)
 		return err
 	}
 
-	if err = dial.Bind(username, password); err != nil {
+	if err = api.client.Bind(api.username, api.password); err != nil {
 		log.Errorf("Authentication failed: %s", err)
 		return err
 	}

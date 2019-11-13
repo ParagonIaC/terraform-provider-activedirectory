@@ -1,4 +1,4 @@
-module github.com/adlerrobert/terraform-provider-activedirectory
+module github.com/adlerrobert/terraform-provider-ldap
 
 go 1.13
 

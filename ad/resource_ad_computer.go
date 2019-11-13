@@ -27,10 +27,7 @@ func resourceADComputer() *schema.Resource {
 				Required: true,
 				// this is to ignore case in ldap distinguished name
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					if strings.ToLower(old) == strings.ToLower(new) {
-						return true
-					}
-					return false
+					return strings.EqualFold(old, new)
 				},
 			},
 			"description": {
@@ -55,7 +52,7 @@ func resourceADComputerCreate(d *schema.ResourceData, meta interface{}) error {
 	computer := &Computer{
 		Name: d.Get("computer_name").(string),
 		Attributes: []*ldap.EntryAttribute{
-			&ldap.EntryAttribute{
+			{
 				Name:   "description",
 				Values: desc,
 			},
@@ -90,7 +87,7 @@ func resourceADComputerRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// set 'computer_name' field
-	if err = d.Set("computer_name", computer.Name); err != nil {
+	if err := d.Set("computer_name", computer.Name); err != nil {
 		return err
 	}
 
@@ -99,7 +96,7 @@ func resourceADComputerRead(d *schema.ResourceData, meta interface{}) error {
 	ou := strings.Join(tmp[1:], ",")
 
 	// set 'ou_distinguished_name' field
-	if err = d.Set("ou_distinguished_name", ou); err != nil {
+	if err := d.Set("ou_distinguished_name", ou); err != nil {
 		return err
 	}
 
@@ -107,7 +104,7 @@ func resourceADComputerRead(d *schema.ResourceData, meta interface{}) error {
 	description := ""
 	for _, attr := range computer.Attributes {
 		if attr.Name == "description" {
-			if len(attr.Values[0]) != 0 {
+			if attr.Values[0] != "" {
 				description = attr.Values[0]
 			} else {
 				description = ""
@@ -115,7 +112,7 @@ func resourceADComputerRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if err = d.Set("description", description); err != nil {
+	if err := d.Set("description", description); err != nil {
 		return err
 	}
 
@@ -126,7 +123,7 @@ func resourceADComputerRead(d *schema.ResourceData, meta interface{}) error {
 func resourceADComputerUpdate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(APIInterface)
 
-	//construct dn name with the "old" ou_distinguished_name, because it could have been changed
+	// construct dn name with the "old" ou_distinguished_name, because it could have been changed
 	old, _ := d.GetChange("ou_distinguished_name")
 
 	computer := &Computer{
@@ -145,7 +142,7 @@ func resourceADComputerUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		attr := []*ldap.EntryAttribute{
-			&ldap.EntryAttribute{
+			{
 				Name:   "description",
 				Values: desc,
 			},

@@ -14,15 +14,22 @@ func Provider() terraform.ResourceProvider {
 			"domain": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The Domain of the AD Server",
+				Description: "The domain of the AD Server",
 				DefaultFunc: schema.EnvDefaultFunc("AD_DOMAIN", nil),
 			},
 
-			"ip": {
+			"server_host": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The IP of the AD Server",
-				DefaultFunc: schema.EnvDefaultFunc("AD_IP", nil),
+				Description: "The name/ip of the AD Server",
+				DefaultFunc: schema.EnvDefaultFunc("AD_SERVER_HOST", nil),
+			},
+
+			"server_port": {
+				Type:        schema.TypeString,
+				Default:     389,
+				Description: "The port of the AD Server",
+				DefaultFunc: schema.EnvDefaultFunc("AD_SERVER_PORT", nil),
 			},
 
 			"user": {

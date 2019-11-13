@@ -12,4 +12,4 @@
 **/.testing/*
 
 # provider file
-terraform-provider-activedirectory
+terraform-provider-ldap

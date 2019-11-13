@@ -1,5 +1,5 @@
 TEST?=./...
-PKG_NAME=ad
+PKG_NAME=ldap
 
 default: build
 

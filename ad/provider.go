@@ -28,6 +28,7 @@ func Provider() terraform.ResourceProvider {
 			"server_port": {
 				Type:        schema.TypeString,
 				Default:     389,
+				Optional:    true,
 				Description: "The port of the AD Server",
 				DefaultFunc: schema.EnvDefaultFunc("AD_SERVER_PORT", nil),
 			},

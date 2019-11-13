@@ -40,6 +40,13 @@ resource "activedirectory_computer" "foo" {
 }
 ```
 
+### Updating Dependencies
+```console
+$ go get URL
+$ go mod tidy
+$ go mod vendor
+```
+
 ## Testing the Provider
 TODO
 

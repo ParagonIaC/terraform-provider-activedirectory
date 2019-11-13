@@ -32,14 +32,14 @@ type API struct {
 }
 
 // NewAPI create a AD API object
-func NewAPI(ip string, domain string) (api *API) {
+func NewAPI(ip, domain string) (api *API) {
 	return &API{ip: ip, domain: domain}
 }
 
 // Connect connects to an Active Directory server
 //	username - string
 // 	password - string
-func (api *API) Connect(username string, password string) (err error) {
+func (api *API) Connect(username, password string) (err error) {
 	api.username = fmt.Sprintf("%s@%s", username, api.domain)
 	api.password = password
 

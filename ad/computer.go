@@ -19,7 +19,7 @@ type Computer struct {
 //	ldapFilter - string value, has to be a valid ldap filter to search ad computer objects,must contain "(objectClass=Computer)"
 // 	ou - string value, the base ou for the search
 // 	attributesToGet - list of attributes we want the search to return
-func (api *API) GetComputersByLDAPFilter(ldapFilter string, baseOU string, attributesToGet []string) (computer []*Computer, err error) {
+func (api *API) GetComputersByLDAPFilter(ldapFilter, baseOU string, attributesToGet []string) (computer []*Computer, err error) {
 	if ldapFilter == "" {
 		return nil, fmt.Errorf("no filter specified")
 	}
@@ -70,7 +70,7 @@ func (api *API) GetComputersByLDAPFilter(ldapFilter string, baseOU string, attri
 //	dn - string value, distinguished name of the computer object
 //	ou - string value, the base ou for the search
 // 	attributesToGet - list of attributes we want the search to return
-func (api *API) GetComputerByDN(dn string, baseOU string, attributesToGet []string) (*Computer, error) {
+func (api *API) GetComputerByDN(dn, baseOU string, attributesToGet []string) (*Computer, error) {
 	if dn == "" {
 		return nil, fmt.Errorf("no computer name specified")
 	}

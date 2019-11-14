@@ -3,8 +3,8 @@ package ldap
 import (
 	"strings"
 
-	"github.com/google/martian/log"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	log "github.com/sirupsen/logrus"
 )
 
 func resourceLDAPObject() *schema.Resource {

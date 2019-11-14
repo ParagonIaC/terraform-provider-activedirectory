@@ -6,51 +6,46 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Provider for terraform active directory
+// Provider for terraform ldap provider
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-
-			"domain": {
+			"ldap_host": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The domain of the AD Server",
-				DefaultFunc: schema.EnvDefaultFunc("AD_DOMAIN", nil),
+				DefaultFunc: schema.EnvDefaultFunc("LDAP_HOST", nil),
+				Description: "The LDAP server to connect to.",
 			},
-
-			"server_host": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The name/ip of the AD Server",
-				DefaultFunc: schema.EnvDefaultFunc("AD_SERVER_HOST", nil),
-			},
-
-			"server_port": {
-				Type:        schema.TypeString,
-				Default:     389,
+			"ldap_port": {
+				Type:        schema.TypeInt,
 				Optional:    true,
-				Description: "The port of the AD Server",
-				DefaultFunc: schema.EnvDefaultFunc("AD_SERVER_PORT", nil),
+				DefaultFunc: schema.EnvDefaultFunc("LDAP_PORT", 389),
+				Description: "The LDAP protocol port (default: 389).",
 			},
-
-			"user": {
+			"use_tls": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("LDAP_USE_TLS", true),
+				Description: "Use TLS to secure the connection (default: true).",
+			},
+			"bind_user": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The user name to connect to the AD Server",
-				DefaultFunc: schema.EnvDefaultFunc("AD_USER", nil),
+				DefaultFunc: schema.EnvDefaultFunc("LDAP_BIND_USER", nil),
+				Description: "Bind user to be used for authenticating on the LDAP server.",
 			},
-
-			"password": {
+			"bind_password": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Sensitive:   true,
-				Description: "The user password to connect to the AD Server",
-				DefaultFunc: schema.EnvDefaultFunc("AD_PASSWORD", nil),
+				DefaultFunc: schema.EnvDefaultFunc("LDAP_BIND_PASSWORD", nil),
+				Description: "Password to authenticate the Bind user.",
 			},
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"activedirectory_computer": resourceADComputer(),
+			"ldap_object":   resourceLDAPObject(),
+			"ldap_computer": resourceLDAPComputerObject(),
+			// "activedirectory_computer": resourceADComputer(),
 		},
 
 		ConfigureFunc: providerConfigure,
@@ -58,11 +53,17 @@ func Provider() terraform.ResourceProvider {
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-	api := NewAPI(d.Get("ip").(string), d.Get("domain").(string))
+	api := &API{
+		ldapHost:     d.Get("ldap_host").(string),
+		ldapPort:     d.Get("ldap_port").(int),
+		useTLS:       d.Get("use_tls").(bool),
+		bindUser:     d.Get("bind_user").(string),
+		bindPassword: d.Get("bind_password").(string),
+	}
 
-	log.Infof("Connecting to AD %s (%s) as user %s.", d.Get("domain").(string), d.Get("ip").(string), d.Get("user").(string))
+	log.Infof("Connecting to ldap server %s (%d) as user %s.", api.ldapHost, api.ldapPort, api.bindUser)
 
-	if err := api.Connect(d.Get("user").(string), d.Get("password").(string)); err != nil {
+	if err := api.connect(); err != nil {
 		return nil, err
 	}
 

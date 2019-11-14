@@ -1,39 +1,34 @@
 package ldap
 
 import (
+	"crypto/tls"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/ldap.v3"
 )
 
-// LDAPInterface is the basic interface for LDAP API
-type LDAPInterface interface {
-	Connect(string, string) error
+// APIInterface is the basic interface for LDAP API
+type APIInterface interface {
+	connect() error
 
-	// generel ldap object
-	GetObjectBy(dn string) (*LDAPObject, error)
-	SearchObject(query string) ([]*LDAPObject, error)
+	// generic objects
+	searchObject(filter, baseDN string, attributes []string) ([]*Object, error)
+	getObject(dn string, attributes []string) (*Object, error)
+	createObject(dn string, class []string, attributes map[string][]string) error
+	deleteObject(dn string) error
+	updateObject(dn string, classes []string, added map[string][]string, changed map[string][]string, removed map[string][]string) error
 
-	CreateObject(dn string, objType LDAPType, attributes map[string]string) error
-	DeleteObject(dn string) error
-
-	UpdateObject(dn string, attributes map[string]string) error
-
-	// comupter object part
-	GetComputersByLDAPFilter(string, string, []string) ([]*Computer, error)
-	GetComputerByDN(string, string, []string) (*Computer, error)
-
-	CreateComputer(*Computer, string) error
-
-	UpdateComputerOU(*Computer, string) error
-	UpdateComputerAttributes(*Computer, []*ldap.EntryAttribute) error
-
-	DeleteComputer(dn string) error
+	// comupter objects
+	getComputer(dn string, attributes []string) (*Computer, error)
+	createComputer(dn, cn string, attributes map[string][]string) error
+	updateComputerOU(dn, cn, ou string) error
+	updateComputerAttributes(dn string, added map[string][]string, changed map[string][]string, removed map[string][]string) error
+	deleteComputer(dn string) error
 }
 
-// LDAP is the basic struct which should implement the LDAPInterface
-type LDAP struct {
+// API is the basic struct which should implement the interface
+type API struct {
 	ldapHost     string
 	ldapPort     int
 	useTLS       bool
@@ -42,17 +37,9 @@ type LDAP struct {
 	client       *ldap.Conn
 }
 
-// NewAPI create a AD API object
-func NewLDAPConnection(host string, port int, useTLS bool) *LDAP {
-	return &LDAP{ldapHost: host, ldapPort port, useTLS: useTLS}
-}
-
-// Connect connects to an Active Directory server
-//	username - string
-// 	password - string
-func (api *LDAP) Connect(username, password string) (err error) {
-	api.bindUser = username
-	api.bindPassword = password
+// connects to an Active Directory server
+func (api *API) connect() (err error) {
+	log.Debugf("Trying LDAP connection with user %s to server %s", api.bindUser, api.ldapHost)
 
 	api.client, err = ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.ldapHost, api.ldapPort))
 	if err != nil {
@@ -60,7 +47,7 @@ func (api *LDAP) Connect(username, password string) (err error) {
 		return err
 	}
 
-	if c.UseTLS {
+	if api.useTLS {
 		if err := api.client.StartTLS(&tls.Config{InsecureSkipVerify: true}); err != nil {
 			api.client = nil
 			return err
@@ -73,6 +60,6 @@ func (api *LDAP) Connect(username, password string) (err error) {
 		return err
 	}
 
-	log.Debugf("AD connection successful for user: %s", api.bindUser)
+	log.Debugf("LDAP connection successful for user: %s", api.bindUser)
 	return nil
 }

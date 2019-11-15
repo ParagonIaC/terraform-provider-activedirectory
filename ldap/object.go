@@ -43,7 +43,7 @@ func (api *API) searchObject(filter, baseDN string, attributes []string) ([]*Obj
 	objects := make([]*Object, len(result.Entries))
 	for i, entry := range result.Entries {
 		objects[i] = &Object{
-			dn:         entry.GetAttributeValue("distinguishedName"),
+			dn:         entry.DN,
 			attributes: decodeLDAPAttributes(entry.Attributes),
 		}
 	}

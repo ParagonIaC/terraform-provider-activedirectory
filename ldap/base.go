@@ -34,7 +34,7 @@ type API struct {
 	useTLS       bool
 	bindUser     string
 	bindPassword string
-	client       *ldap.Conn
+	client       ldap.Client
 }
 
 // connects to an Active Directory server

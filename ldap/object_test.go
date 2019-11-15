@@ -29,8 +29,6 @@ func createLDAPResult(cntEntries, cntAttributes int) *ldap.SearchResult {
 }
 
 func TestSearchObject(t *testing.T) {
-	assert := assert.New(t)
-
 	numberOfObjects := 2
 	numberOfAttributes := 3
 	searchResult := createLDAPResult(numberOfObjects, numberOfAttributes)
@@ -43,8 +41,8 @@ func TestSearchObject(t *testing.T) {
 
 		objects, err := api.searchObject("", "", nil)
 
-		assert.Error(err)
-		assert.Nil(objects)
+		assert.Error(t, err)
+		assert.Nil(t, objects)
 	})
 
 	t.Run("searchObject - should return a list of objects", func(t *testing.T) {
@@ -55,16 +53,16 @@ func TestSearchObject(t *testing.T) {
 
 		objects, err := api.searchObject("", "", nil)
 
-		assert.NoError(err)
-		assert.NotNil(objects)
-		assert.Len(objects, 2)
+		assert.NoError(t, err)
+		assert.NotNil(t, objects)
+		assert.Len(t, objects, 2)
 
 		// check all values
 		for i := 0; i < numberOfObjects; i++ {
-			assert.Equal(searchResult.Entries[i].DN, objects[i].dn)
+			assert.Equal(t, searchResult.Entries[i].DN, objects[i].dn)
 
 			for j := 0; j < numberOfAttributes; j++ {
-				assert.Equal(searchResult.Entries[i].Attributes[j].Values, objects[i].attributes[searchResult.Entries[i].Attributes[j].Name])
+				assert.Equal(t, searchResult.Entries[i].Attributes[j].Values, objects[i].attributes[searchResult.Entries[i].Attributes[j].Name])
 			}
 		}
 	})

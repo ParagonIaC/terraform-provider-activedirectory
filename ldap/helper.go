@@ -13,18 +13,3 @@ func decodeLDAPAttributes(attributes []*ldap.EntryAttribute) map[string][]string
 
 	return attr
 }
-
-func encodeLDAPAttributes(attributes map[string][]string) []*ldap.EntryAttribute {
-	attr := make([]*ldap.EntryAttribute, len(attributes))
-
-	i := 0
-	for key, value := range attributes {
-		attr[i] = &ldap.EntryAttribute{
-			Name:   key,
-			Values: value,
-		}
-		i++
-	}
-
-	return attr
-}

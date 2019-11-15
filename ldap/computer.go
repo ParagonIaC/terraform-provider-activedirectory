@@ -63,7 +63,7 @@ func (api *API) updateComputerOU(dn, cn, ou string) error {
 }
 
 // updates the attributes of an existing computer object
-func (api *API) updateComputerAttributes(dn string, added map[string][]string, changed map[string][]string, removed map[string][]string) error {
+func (api *API) updateComputerAttributes(dn string, added, changed, removed map[string][]string) error {
 	log.Infof("updating attributes of computer object %s", dn)
 	return api.updateObject(dn, []string{"computer"}, added, changed, removed)
 }

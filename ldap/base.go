@@ -48,7 +48,7 @@ func (api *API) connect() (err error) {
 	}
 
 	if api.useTLS {
-		if err := api.client.StartTLS(&tls.Config{InsecureSkipVerify: true}); err != nil {
+		if err = api.client.StartTLS(&tls.Config{InsecureSkipVerify: false}); err != nil {
 			api.client = nil
 			return err
 		}

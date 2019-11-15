@@ -3,23 +3,27 @@
 # Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2.1
 jobs:
-  test:
+  lint:
     docker:
-      # specify the version
-      - image: circleci/golang:1.9
-
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-
-    #### TEMPLATE_NOTE: go expects specific checkout path representing url
-    #### expecting it in the form of
-    ####   /go/src/github.com/circleci/go-tool
-    ####   /go/src/bitbucket.org/circleci/go-tool
-    working_directory: /go/src/github.com/adlerrobert/
+      - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/adlerrobert/ldap
     steps:
       - checkout
       - run: go get -v -t -d ./...
-      # - run: make fmtcheck
-      # - run: make lint
+      - run: make fmtcheck
+      - run: make lint
+
+  test:
+    docker:
+      - image: circleci/golang:1.12
+
+    working_directory: /go/src/github.com/adlerrobert/ldap
+    steps:
+      - checkout
+      - run: go get -v -t -d ./...
       - run: gotestsum --junitfile unit-test.xml
-      # - run: go test -v ./...
+workflows:
+  version: 2.1
+  testing:
+      jobs:
+        - test

@@ -7,7 +7,7 @@ build:
 	go build
 	mv terraform-provider-ldap ~/.terraform.d/plugins/
 
-install: fmtcheck
+install: fmtcheck lint
 	go install
 
 # test: fmtcheck

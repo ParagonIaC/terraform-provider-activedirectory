@@ -1,0 +1,29 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2.1
+jobs:
+  lint:
+    docker:
+      - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/adlerrobert/terraform-provider-ldap
+    steps:
+      - checkout
+      - run: go get -v -t -d ./...
+      - run: make fmtcheck
+      - run: make lint
+
+  test:
+    docker:
+      - image: circleci/golang:1.12
+
+    working_directory: /go/src/github.com/adlerrobert/terraform-provider-ldap
+    steps:
+      - checkout
+      - run: go get -v -t -d ./...
+      - run: gotestsum --junitfile unit-test.xml
+workflows:
+  version: 2.1
+  testing:
+      jobs:
+        - test

@@ -1,7 +1,7 @@
 # Terraform Provider - LDAP (Lightweight Directory Access Protocol)
 
 [![GolangCI](https://golangci.com/badges/github.com/golangci/golangci-lint.svg)](https://golangci.com)
-[![CircleCI](https://circleci.com/gh/adlerrobert/terraform-provider-ldap.svg?style=svg)](https://circleci.com/gh/adlerrobert/terraform-provider-ldap)
+[![CircleCI](https://circleci.com/gh/adlerrobert/terraform-provider-ldap/tree/master.svg?style=svg)](https://circleci.com/gh/adlerrobert/terraform-provider-ldap/tree/master)
 
 This is a Terraform  Provider to work with LDAP.
 

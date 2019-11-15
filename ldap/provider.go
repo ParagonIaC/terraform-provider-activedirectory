@@ -43,9 +43,7 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"ldap_object":   resourceLDAPObject(),
 			"ldap_computer": resourceLDAPComputerObject(),
-			// "activedirectory_computer": resourceADComputer(),
 		},
 
 		ConfigureFunc: providerConfigure,

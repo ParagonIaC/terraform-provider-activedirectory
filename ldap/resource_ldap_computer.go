@@ -15,7 +15,6 @@ func resourceLDAPComputerObject() *schema.Resource {
 		Read:   resourceLDAPComputerObjectRead,
 		Update: resourceLDAPComputerObjectUpdate,
 		Delete: resourceLDAPComputerObjectDelete,
-		Exists: resourceLDAPComputerObjectExists,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -149,24 +148,4 @@ func resourceLDAPComputerObjectDelete(d *schema.ResourceData, meta interface{}) 
 
 	// call ad to delete the computer object, no error means that object was deleted successfully
 	return api.deleteComputer(dn)
-}
-
-func resourceLDAPComputerObjectExists(d *schema.ResourceData, meta interface{}) (b bool, e error) {
-	api := meta.(APIInterface)
-	dn := fmt.Sprintf("cn=%s,%s", d.Get("name").(string), d.Get("ou").(string))
-
-	objects, err := api.searchObject("(objectClass=*)", dn, nil)
-	if err != nil {
-		log.Errorf("Error while searching for ldap computer object %s: %s", dn, err)
-		return false, err
-	}
-
-	if len(objects) == 0 {
-		log.Infof("Computer object %d not found", dn)
-		return false, nil
-	}
-
-	log.Infof("Computer object %d found", dn)
-
-	return true, nil
 }

@@ -6,7 +6,7 @@ jobs:
   lint:
     docker:
       - image: circleci/golang:1.12
-    working_directory: /go/src/github.com/adlerrobert/ldap
+    working_directory: /go/src/github.com/adlerrobert/terraform-provider-ldap
     steps:
       - checkout
       - run: go get -v -t -d ./...
@@ -17,7 +17,7 @@ jobs:
     docker:
       - image: circleci/golang:1.12
 
-    working_directory: /go/src/github.com/adlerrobert/ldap
+    working_directory: /go/src/github.com/adlerrobert/terraform-provider-ldap
     steps:
       - checkout
       - run: go get -v -t -d ./...

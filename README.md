@@ -1,8 +1,8 @@
-# Terraform Provider - Active Directory/LDAP
+# Terraform Provider - LDAP (Lightweight Directory Access Protocol)
 
 [![GolangCI](https://golangci.com/badges/github.com/golangci/golangci-lint.svg)](https://golangci.com)
 
-This is a Terraform  Provider to work with Active Directory/LDAP.
+This is a Terraform  Provider to work with LDAP.
 
 This provider currently supports only computer objects, but more active directory resources are planned. Please feel free to contribute.
 
@@ -23,20 +23,20 @@ TODO
 The provider is useful for adding and managing computer objects in Active Directory.
 ### Example
 ```hcl
-# Configure the Active Directory Provider
-provider "activedirectory" {
-  domain         = "${var.ad_server_domain}"
-  user           = "${var.ad_server_user}"
-  password       = "${var.ad_server_password}"
-  server_host    = "${var.ad_server_host}"
-  server_port    = "${var.ad_server_host}" # 389 is the default value
+# Configure the LDAP Provider
+provider "ldap" {
+  ldap_host     = "ldap.example.org"
+  ldap_port     = 389
+  use_tls       = true
+  bind_user     = "cn=admin,dc=example,dc=org"
+  bind_password = "admin"
 }
 
 # Add computer to Active Directory
-resource "activedirectory_computer" "foo" {
-  computer_name           = "TestComputerTF"                       # update will force destroy and new
-  ou_distinguished_name   = "CN=Computers,DC=mycompany,DC=local"   # can be updated
-  description             = "terraform sample server"              # can be updated
+resource "ldap_computer" "foo" {
+  name           = "TestComputerTF"                       # update will force destroy and new
+  ou             = "CN=Computers,DC=example,DC=org"       # can be updated
+  description    = "terraform sample server"              # can be updated
 }
 ```
 

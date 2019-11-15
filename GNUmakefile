@@ -1,9 +1,13 @@
 TEST?=./...
-PKG_NAME=ad
+PKG_NAME=ldap
 
-default: build
+default: install
 
-build: fmtcheck
+build:
+	go build
+	mv terraform-provider-ldap ~/.terraform.d/plugins/
+
+install: fmtcheck lint
 	go install
 
 # test: fmtcheck

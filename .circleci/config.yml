@@ -5,7 +5,7 @@ version: 2.1
 jobs:
   lint:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     working_directory: /go/src/github.com/adlerrobert/terraform-provider-ldap
     steps:
       - checkout
@@ -15,15 +15,17 @@ jobs:
 
   test:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
 
     working_directory: /go/src/github.com/adlerrobert/terraform-provider-ldap
     steps:
       - checkout
       - run: go get -v -t -d ./...
       - run: gotestsum --junitfile unit-test.xml
+
 workflows:
   version: 2.1
-  testing:
-      jobs:
-        - test
+  lint_and_test:
+    jobs:
+      - lint
+      - test

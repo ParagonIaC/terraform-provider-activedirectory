@@ -1,5 +1,6 @@
 # Golang CircleCI 2.0 configuration file
 #
+#
 # Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2.1
 jobs:
@@ -11,7 +12,7 @@ jobs:
       - checkout
       - run: go get -v -t -d ./...
       - run: make fmtcheck
-      - run: make lint
+      #- run: make lint
 
   test:
     docker:
@@ -21,11 +22,27 @@ jobs:
     steps:
       - checkout
       - run: go get -v -t -d ./...
-      - run: gotestsum --junitfile unit-test.xml
+      #- run: gotestsum --junitfile unit-test.xml
+      #- run: go test -race -coverprofile=coverage.txt -covermode=atomic
+      - run:
+          environment:
+            GOTESTSUM_JUNITFILE: /tmp/test-reports/unit/junit.xml
+            GOTESTSUM_FORMAT: short
+          command: |
+            mkdir -p /tmp/test-reports/unit
+            gotestsum -- \
+              -coverprofile=coverage.txt \
+              ./...
+      - store_test_results:
+          path: /tmp/test-reports
+      - run:
+          shell: /bin/bash -eo pipefail
+          command: |
+            bash <(curl -s https://codecov.io/bash)
 
 workflows:
   version: 2.1
   lint_and_test:
     jobs:
-      - lint
+      #- lint
       - test

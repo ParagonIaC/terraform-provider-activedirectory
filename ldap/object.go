@@ -1,7 +1,6 @@
 package ldap
 
 import (
-	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -57,12 +56,18 @@ func (api *API) getObject(dn string, attributes []string) (*Object, error) {
 
 	objects, err := api.searchObject("(objectclass=*)", dn, attributes)
 	if err != nil {
+		if err, ok := err.(*ldap.Error); ok {
+			if err.ResultCode == 32 {
+				log.Info("LDAP object could not be found", dn)
+				return nil, nil
+			}
+		}
 		log.Errorf("Error will searching for ldap object %s: %s:", dn, err)
 		return nil, err
 	}
 
 	if len(objects) != 1 {
-		return nil, fmt.Errorf("object with dn %s not found", dn)
+		return nil, nil
 	}
 
 	return objects[0], nil

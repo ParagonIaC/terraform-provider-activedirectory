@@ -26,15 +26,15 @@ func TestResourceLDAPComputerObject(t *testing.T) {
 }
 
 func TestResourceLDAPComputerObjectCreate(t *testing.T) {
-	name := "Test"
-	ou := "ou=test,ou=org"
+	name := "Test1"
+	ou := "ou=test1,ou=org"
 	description := "terraform"
 
 	testComputer := &Computer{
 		name: name,
 		dn:   fmt.Sprintf("cn=%s,%s", name, ou),
 		attributes: map[string][]string{
-			"description": []string{description},
+			"description": {description},
 		},
 	}
 
@@ -58,7 +58,7 @@ func TestResourceLDAPComputerObjectCreate(t *testing.T) {
 
 	t.Run("resourceLDAPComputerObjectCreate - should return error when creating failed", func(t *testing.T) {
 		api := new(MockAPIInterface)
-		api.On("createComputer", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("Error"))
+		api.On("createComputer", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceLDAPComputerObjectCreate(resourceLocalData, api)
@@ -80,15 +80,15 @@ func TestResourceLDAPComputerObjectCreate(t *testing.T) {
 }
 
 func TestResourceLDAPComputerObjectRead(t *testing.T) {
-	name := "Test"
-	ou := "ou=test,ou=org"
+	name := "Test2"
+	ou := "ou=test2,ou=org"
 	description := "terraform"
 
 	testComputer := &Computer{
 		name: name,
 		dn:   fmt.Sprintf("cn=%s,%s", name, ou),
 		attributes: map[string][]string{
-			"description": []string{description},
+			"description": {description},
 		},
 	}
 
@@ -111,7 +111,7 @@ func TestResourceLDAPComputerObjectRead(t *testing.T) {
 
 	t.Run("resourceLDAPComputerObjectRead - should return error when reading failed", func(t *testing.T) {
 		api := new(MockAPIInterface)
-		api.On("getComputer", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("Error"))
+		api.On("getComputer", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceLDAPComputerObjectRead(resourceLocalData, api)
@@ -143,15 +143,15 @@ func TestResourceLDAPComputerObjectRead(t *testing.T) {
 }
 
 func TestResourceLDAPComputerObjectUpdate(t *testing.T) {
-	name := "Test"
-	ou := "ou=test,ou=org"
+	name := "Test3"
+	ou := "ou=test3,ou=org"
 	description := "terraform"
 
 	testComputer := &Computer{
 		name: name,
 		dn:   fmt.Sprintf("cn=%s,%s", name, ou),
 		attributes: map[string][]string{
-			"description": []string{"updated"},
+			"description": {"updated"},
 		},
 	}
 
@@ -162,7 +162,7 @@ func TestResourceLDAPComputerObjectUpdate(t *testing.T) {
 		"description": description,
 	}
 
-	t.Run("resourceLDAPComputerObjectUpdate - shoudl return nil when everything is okay", func(t *testing.T) {
+	t.Run("resourceLDAPComputerObjectUpdate - should return nil when everything is okay", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
 		api.On("updateComputerAttributes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -174,11 +174,10 @@ func TestResourceLDAPComputerObjectUpdate(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("resourceLDAPComputerObjectUpdate - shoudl return error when updateComputerAttributes fails", func(t *testing.T) {
+	t.Run("resourceLDAPComputerObjectUpdate - should return error when updateComputerAttributes fails", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
 		api.On("updateComputerAttributes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
-		// api.On("updateComputerOU", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceLDAPComputerObjectUpdate(resourceLocalData, api)
@@ -186,7 +185,7 @@ func TestResourceLDAPComputerObjectUpdate(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("resourceLDAPComputerObjectUpdate - shoudl return error when updateComputerOU fails", func(t *testing.T) {
+	t.Run("resourceLDAPComputerObjectUpdate - should return error when updateComputerOU fails", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
 		api.On("updateComputerAttributes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)

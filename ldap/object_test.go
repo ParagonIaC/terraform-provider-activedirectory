@@ -195,7 +195,7 @@ func TestGetObject(t *testing.T) {
 func TestCreateObject(t *testing.T) {
 	t.Run("createObject - should forward error from ldap.Client.Add", func(t *testing.T) {
 		mockClient := new(MockClient)
-		mockClient.On("Add", mock.Anything).Return(fmt.Errorf("Error"))
+		mockClient.On("Add", mock.Anything).Return(fmt.Errorf("error"))
 
 		api := &API{client: mockClient}
 		err := api.createObject("", nil, nil)
@@ -217,8 +217,8 @@ func TestCreateObject(t *testing.T) {
 		_baseDN := "baseDN"
 		_classes := []string{"Class1", "Class2"}
 		_attributes := map[string][]string{
-			"Attribute1": []string{"Value1"},
-			"Attribute2": []string{"Value1", "Value2"},
+			"Attribute1": {"Value1"},
+			"Attribute2": {"Value1", "Value2"},
 		}
 
 		matchFunc := func(req *ldap.AddRequest) bool {
@@ -250,7 +250,7 @@ func TestCreateObject(t *testing.T) {
 func TestDeleteObject(t *testing.T) {
 	t.Run("deleteObject - should forward error from ldap.client.Del", func(t *testing.T) {
 		mockClient := new(MockClient)
-		mockClient.On("Del", mock.Anything).Return(fmt.Errorf("Error"))
+		mockClient.On("Del", mock.Anything).Return(fmt.Errorf("error"))
 
 		api := &API{client: mockClient}
 		err := api.deleteObject("")
@@ -289,7 +289,7 @@ func TestDeleteObject(t *testing.T) {
 func TestUpdateObject(t *testing.T) {
 	t.Run("updateObject - should forward error from ldap.client.Modify", func(t *testing.T) {
 		mockClient := new(MockClient)
-		mockClient.On("Modify", mock.Anything).Return(fmt.Errorf("Error"))
+		mockClient.On("Modify", mock.Anything).Return(fmt.Errorf("error"))
 
 		api := &API{client: mockClient}
 		err := api.updateObject("", nil, nil, nil, nil)
@@ -311,13 +311,13 @@ func TestUpdateObject(t *testing.T) {
 		_baseDN := "baseDN"
 		_classes := []string{"Class1", "Class2"}
 		_added := map[string][]string{
-			"Attribute1": []string{"Value1"},
+			"Attribute1": {"Value1"},
 		}
 		_changed := map[string][]string{
-			"Attribute2": []string{"Value2"},
+			"Attribute2": {"Value2"},
 		}
 		_removed := map[string][]string{
-			"Attribute3": []string{"Value3"},
+			"Attribute3": {"Value3"},
 		}
 
 		matchFunc := func(req *ldap.ModifyRequest) bool {

@@ -16,16 +16,14 @@ func (h ldapHandler) Bind(bindDN, bindPw string, conn net.Conn) (ldap.LDAPResult
 	if bindDN == "Tester" && bindPw == "Password" {
 		return ldap.LDAPResultSuccess, nil
 	}
-	return ldap.LDAPResultUnavailable, fmt.Errorf("Authentication failed")
+	return ldap.LDAPResultUnavailable, fmt.Errorf("authentication failed")
 }
 
-func getLDAPServer(host string, port int) *ldap.Server {
+func getLDAPServer(host string, port int) {
 	s := ldap.NewServer()
 	handler := ldapHandler{}
 	s.BindFunc("", handler)
 	if err := s.ListenAndServe(fmt.Sprintf("%s:%d", host, port)); err != nil {
 		log.Errorf("LDAP Server Failed: %s", err.Error())
 	}
-
-	return s
 }

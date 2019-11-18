@@ -54,7 +54,7 @@ func TestGetComputer(t *testing.T) {
 
 		api := &API{client: mockClient}
 
-		computer, err := api.getComputer("", nil)
+		computer, err := api.getComputer("", []string{"cn"})
 
 		assert.NoError(t, err)
 		assert.NotNil(t, computer)
@@ -86,9 +86,9 @@ func TestCreateComputer(t *testing.T) {
 			ret := sr.DN == _name
 
 			stdAttributes := map[string][]string{
-				"name":               []string{_name},
-				"sAMAccountName":     []string{_name + "$"},
-				"userAccountControl": []string{"4096"},
+				"name":               {_name},
+				"sAMAccountName":     {_name + "$"},
+				"userAccountControl": {"4096"},
 			}
 
 			found := 0
@@ -158,7 +158,7 @@ func TestUpdateComputerOU(t *testing.T) {
 func TestUpdateComputerAttributes(t *testing.T) {
 	t.Run("updateComputerAttributes - should forward error from ldap.client.Modify", func(t *testing.T) {
 		mockClient := new(MockClient)
-		mockClient.On("Modify", mock.Anything).Return(fmt.Errorf("Error"))
+		mockClient.On("Modify", mock.Anything).Return(fmt.Errorf("error"))
 
 		api := &API{client: mockClient}
 		err := api.updateComputerAttributes("", nil, nil, nil)
@@ -204,7 +204,7 @@ func TestUpdateComputerAttributes(t *testing.T) {
 func TestDeleteComputer(t *testing.T) {
 	t.Run("deleteComputer - should forward error from api.deleteObject", func(t *testing.T) {
 		mockClient := new(MockClient)
-		mockClient.On("Del", mock.Anything).Return(fmt.Errorf("Error"))
+		mockClient.On("Del", mock.Anything).Return(fmt.Errorf("error"))
 
 		api := &API{client: mockClient}
 		err := api.deleteComputer("")

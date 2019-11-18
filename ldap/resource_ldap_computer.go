@@ -119,7 +119,9 @@ func resourceLDAPComputerObjectUpdate(d *schema.ResourceData, meta interface{}) 
 			"description": desc,
 		}
 
-		api.updateComputerAttributes(dn, nil, attributes, nil)
+		if err := api.updateComputerAttributes(dn, nil, attributes, nil); err != nil {
+			return err
+		}
 
 		d.SetPartial("description")
 	}

@@ -25,6 +25,10 @@ func (api *API) getComputer(dn string, attributes []string) (*Computer, error) {
 		return nil, err
 	}
 
+	if ret == nil {
+		return nil, nil
+	}
+
 	return &Computer{
 		name:       strings.Join(ret.attributes["cn"], ""),
 		dn:         ret.dn,
@@ -35,6 +39,10 @@ func (api *API) getComputer(dn string, attributes []string) (*Computer, error) {
 // creates a new computer object
 func (api *API) createComputer(dn, cn string, attributes map[string][]string) error {
 	log.Infof("Creating computer object %s", dn)
+
+	if attributes == nil {
+		attributes = make(map[string][]string)
+	}
 
 	attributes["name"] = []string{cn}
 	attributes["sAMAccountName"] = []string{cn + "$"}
@@ -63,9 +71,9 @@ func (api *API) updateComputerOU(dn, cn, ou string) error {
 }
 
 // updates the attributes of an existing computer object
-func (api *API) updateComputerAttributes(dn string, added map[string][]string, changed map[string][]string, removed map[string][]string) error {
+func (api *API) updateComputerAttributes(dn string, added, changed, removed map[string][]string) error {
 	log.Infof("updating attributes of computer object %s", dn)
-	return api.updateObject(dn, []string{"computer"}, added, changed, removed)
+	return api.updateObject(dn, nil, added, changed, removed)
 }
 
 // deletes an existing computer object.

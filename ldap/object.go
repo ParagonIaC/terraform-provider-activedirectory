@@ -1,7 +1,6 @@
 package ldap
 
 import (
-	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -51,18 +50,24 @@ func (api *API) searchObject(filter, baseDN string, attributes []string) ([]*Obj
 	return objects, nil
 }
 
-// Get returns ldap object with distinguised name dn
+// Get returns ldap object with distinguished name dn
 func (api *API) getObject(dn string, attributes []string) (*Object, error) {
 	log.Infof("Trying to get ldap object: %s", dn)
 
 	objects, err := api.searchObject("(objectclass=*)", dn, attributes)
 	if err != nil {
+		if err, ok := err.(*ldap.Error); ok {
+			if err.ResultCode == 32 {
+				log.Info("LDAP object could not be found", dn)
+				return nil, nil
+			}
+		}
 		log.Errorf("Error will searching for ldap object %s: %s:", dn, err)
 		return nil, err
 	}
 
 	if len(objects) != 1 {
-		return nil, fmt.Errorf("Object with dn %s not found", dn)
+		return nil, nil
 	}
 
 	return objects[0], nil
@@ -110,7 +115,7 @@ func (api *API) deleteObject(dn string) error {
 }
 
 // Update updates a ldap object
-func (api *API) updateObject(dn string, classes []string, added map[string][]string, changed map[string][]string, removed map[string][]string) error {
+func (api *API) updateObject(dn string, classes []string, added, changed, removed map[string][]string) error {
 	log.Infof("Updating object %s", dn)
 
 	req := ldap.NewModifyRequest(dn, nil)
@@ -136,6 +141,6 @@ func (api *API) updateObject(dn string, classes []string, added map[string][]str
 		return err
 	}
 
-	log.Errorf("Object %s updated", dn)
+	log.Infof("Object %s updated", dn)
 	return nil
 }

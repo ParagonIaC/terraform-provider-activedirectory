@@ -297,7 +297,7 @@ func TestUpdateObject(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("updateObject - should return nil when object is deleted successfully", func(t *testing.T) {
+	t.Run("updateObject - should return nil when object is updated successfully", func(t *testing.T) {
 		mockClient := new(MockClient)
 		mockClient.On("Modify", mock.Anything).Return(nil)
 

@@ -1,9 +1,3 @@
-# The Organization
-#dn: dc=example,dc=com
-#objectClass: dcObject
-#objectClass: organization
-#o: Example dc: example
-#
 # The organizational unit development (devel)
 dn: ou=computer,dc=example,dc=com
 objectClass: organizationalUnit

@@ -36,7 +36,7 @@ jobs:
           command: |
             apt-get update
             apt-get install -y ldap-utils
-            ldapadd -v -h localhost:389 -c -x -D ""cn=demoadmin,ou=People,dc=ojbc,dc=local"" -w password -f ./ldapserver/ldap_test_data.ldif
+            ldapadd -v -h localhost:389 -c -x -D "cn=demoadmin,ou=People,dc=ojbc,dc=local" -w password -f ./ldapserver/ldap_test_data.ldif
       - run:
           environment:
             GOTESTSUM_JUNITFILE: /tmp/test-reports/unit/junit.xml

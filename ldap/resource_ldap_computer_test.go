@@ -172,7 +172,7 @@ func testAccResourceLDAPComputerTestData(ou, name, description string) string {
 provider "ldap" {
 	ldap_host      = "%s"
 	ldap_port      = %s
-	use_tls		   = %s
+	use_tls		   = false
 	bind_user      = "%s"
 	bind_password  = "%s"
 }
@@ -185,7 +185,7 @@ resource "ldap_computer" "test" {
 	`,
 		os.Getenv("LDAP_HOST"),
 		os.Getenv("LDAP_PORT"),
-		os.Getenv("LDAP_USE_TLS"),
+		// os.Getenv("LDAP_USE_TLS"),
 		os.Getenv("LDAP_BIND_USER"),
 		os.Getenv("LDAP_BIND_PASSWORD"),
 		ou, name, description,

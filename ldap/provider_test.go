@@ -4,10 +4,23 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/ldap.v3"
 )
 
+// acceptance tests
+var testAccProviders map[string]terraform.ResourceProvider
+var testAccProvider *schema.Provider
+
+func init() {
+	testAccProvider = Provider().(*schema.Provider)
+	testAccProviders = map[string]terraform.ResourceProvider{
+		"ldap": testAccProvider,
+	}
+}
+
+// unit tests
 func TestProvider(t *testing.T) {
 	t.Run("Provider - Should return a valid 'schema.Provider'", func(t *testing.T) {
 		response := Provider()

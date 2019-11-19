@@ -1,18 +1,14 @@
-  
-version: 1
+# The Organization
+dn: dc=example,dc=com
+objectClass: dcObject
+objectClass: organization
+o: Example dc: example
 
-dn: dc=company,dc=local
-objectClass: extensibleObject
-objectClass: domain
-objectClass: top
-dc: company
-
-dn: ou=computer,dc=company,dc=local
+# The organizational unit development (devel)
+dn: ou=computer,dc=example,dc=com
 objectClass: organizationalUnit
-objectClass: top
 ou: computer
 
-dn: ou=update,ou=computer,dc=company,dc=local
+dn: ou=update,ou=computer,dc=example,dc=com
 objectClass: organizationalUnit
-objectClass: top
 ou: update

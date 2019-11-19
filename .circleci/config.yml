@@ -39,6 +39,12 @@ jobs:
             ldapadd -v -h localhost:389 -c -x -D "cn=demoadmin,ou=People,dc=ojbc,dc=local" -w password -f ./ldapserver/ldap_test_data.ldif
       - run:
           environment:
+            LDAP_HOST: localhost
+            LDAP_PORT: 389
+            LDAP_USE_TLS: false
+            LDAP_BIND_USER: cn=demoadmin,ou=People,dc=ojbc,dc=local
+            LDAP_BIND_PASSWORD: password
+            LDAP_COMPUTER_TEST_BASE_OU: ou=computer,dc=example,dc=com
             GOTESTSUM_JUNITFILE: /tmp/test-reports/unit/junit.xml
             GOTESTSUM_FORMAT: short
           command: |
@@ -46,6 +52,7 @@ jobs:
             gotestsum -- \
               -coverprofile=coverage.txt \
               ./...
+            make testacc
       - store_test_results:
           path: /tmp/test-reports
       - run:

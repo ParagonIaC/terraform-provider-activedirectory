@@ -15,7 +15,7 @@ import (
 
 // acceptance tests
 func TestAccLDAPComputer_basic(t *testing.T) {
-	ou := "ou=computer,dc=company,dc=org"
+	ou := os.Getenv("LDAP_COMPUTER_TEST_BASE_OU")
 	name := "test-acc-computer"
 	description := "terraform"
 
@@ -42,12 +42,12 @@ func TestAccLDAPComputer_basic(t *testing.T) {
 }
 
 func TestAccLDAPComputer_update(t *testing.T) {
-	ou := "ou=computer,dc=company,dc=org"
+	ou := os.Getenv("LDAP_COMPUTER_TEST_BASE_OU")
 	name := "test-acc-computer"
 	description := "terraform"
 
-	ouUpdated := "ou=update,ou=computer,dc=company,dc=org"
-	descriptionUpdated := "terraform_updated"
+	updatedOU := "ou=update," + ou
+	updatedDescription := description + "_updated"
 
 	var computer Computer
 
@@ -68,13 +68,13 @@ func TestAccLDAPComputer_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccResourceLDAPComputerTestData(ouUpdated, name, descriptionUpdated),
+				Config: testAccResourceLDAPComputerTestData(updatedOU, name, updatedDescription),
 				Check: resource.ComposeTestCheckFunc(
 					// testAccCheckLDAPComputerExists("ldap_computer.test", &computer),
 					// testAccCheckLDAPComputerAttributes(&computer, ou, name, description),
-					resource.TestCheckResourceAttr("ldap_computer.test", "ou", ouUpdated),
+					resource.TestCheckResourceAttr("ldap_computer.test", "ou", updatedOU),
 					// resource.TestCheckResourceAttr("ldap_computer.test", "name", name),
-					resource.TestCheckResourceAttr("ldap_computer.test", "description", descriptionUpdated),
+					resource.TestCheckResourceAttr("ldap_computer.test", "description", updatedDescription),
 					// resource.TestCheckResourceAttr("ldap_computer.test", "id", fmt.Sprintf("cn=%s,%s", ou, name)),
 				),
 			},
@@ -160,6 +160,9 @@ func testAccPreCheck(t *testing.T) {
 	}
 	if v := os.Getenv("LDAP_BIND_PASSWORD"); v == "" {
 		t.Fatal("LDAP_BIND_PASSWORD must be set for acceptance tests")
+	}
+	if v := os.Getenv("LDAP_COMPUTER_TEST_BASE_OU"); v == "" {
+		t.Fatal("LDAP_COMPUTER_TEST_BASE_OU must be set for acceptance tests")
 	}
 }
 

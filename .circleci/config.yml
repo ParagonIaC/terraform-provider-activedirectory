@@ -25,7 +25,17 @@ jobs:
       - checkout
       - run: go get -v -t -d ./...
       - run:
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.3.0
+      - run:
+          name: Wait for apacheds
+          command: dockerize -wait tcp://localhost:389 -timeout 2m
+      - run:
           command: |
+            apt-get update
+            apt-get install -y ldap-utils
             ldapadd -v -h localhost:389 -c -x -D uid=admin,ou=system -w secret -f ./ldapserver/ldap_test_data.ldif
       - run:
           environment:

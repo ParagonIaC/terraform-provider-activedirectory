@@ -17,13 +17,16 @@ jobs:
   test:
     docker:
       - image: circleci/golang:1.13
+      - image: openmicroscopy/apacheds
+        # environment:
 
     working_directory: /go/src/github.com/adlerrobert/terraform-provider-ldap
     steps:
       - checkout
       - run: go get -v -t -d ./...
-      #- run: gotestsum --junitfile unit-test.xml
-      #- run: go test -race -coverprofile=coverage.txt -covermode=atomic
+      - run:
+          command: |
+            ldapadd -v -h localhost:389 -c -x -D uid=admin,ou=system -w secret -f ./ldapserver/ldap_test_data.ldif
       - run:
           environment:
             GOTESTSUM_JUNITFILE: /tmp/test-reports/unit/junit.xml

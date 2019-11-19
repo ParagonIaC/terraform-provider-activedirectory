@@ -1,0 +1,24 @@
+  
+version: 1
+
+dn: dc=org
+objectClass: extensibleObject
+objectClass: domain
+objectClass: top
+dc: org
+
+dn: dc=company,dc=org
+objectClass: extensibleObject
+objectClass: domain
+objectClass: top
+dc: company
+
+dn: ou=computer,dc=company,dc=org
+objectClass: organizationalUnit
+objectClass: top
+ou: computer
+
+dn: ou=update,ou=computer,dc=company,dc=org
+objectClass: organizationalUnit
+objectClass: top
+ou: update

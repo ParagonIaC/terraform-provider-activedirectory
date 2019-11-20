@@ -15,7 +15,7 @@ m-dependencies: core
 m-dependencies: cosine
 objectclass: metaSchema
 objectclass: top
-cn: computer
+cn: terraform
 
 # schema ou for attributeTypes
 dn: ou=attributeTypes,cn=terraform,ou=schema

@@ -105,10 +105,10 @@ workflows:
   lint_and_test:
     jobs:
       - lint
-      - unit-test
+      - unit-test:
           requires:
             - lint
-      - integration-test
+      - integration-test:
           requires:
             - lint
           

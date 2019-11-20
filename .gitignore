@@ -13,3 +13,6 @@
 
 # provider file
 terraform-provider-activedirectory
+
+# test coverage
+coverage.txt

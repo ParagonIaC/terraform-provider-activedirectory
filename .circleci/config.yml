@@ -3,74 +3,112 @@
 #
 # Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2.1
+parameters:
+  go-image-tag:
+    type: string
+    default: "1.13"
+
+  workingdir:
+    type: string
+    default: "/go/src/github.com/adlerrobert/terraform-provider-activedirectory"
+  
+  testdir:
+    type: string
+    default: "/tmp/test-reports/unit"
+
+  ldap-host:
+    type: string
+    default: localhost
+  
+  ldap-port:
+    type: int
+    default: 10389
+  
+  ldap-ustls:
+    type: bool
+    default: true
+
+  ldap-user:
+    type: string
+    default: "uid=admin,ou=system"
+  
+  ldap-password:
+    type: string
+    default: "secret"
+  
+  ldap-base-ou:
+    type: string
+    default: "ou=computer,dc=openmicroscopy,dc=org"
+
 jobs:
+  # linting job - performs go and terraform linting ###########################
   lint:
     docker:
-      - image: circleci/golang:1.13
-    working_directory: /go/src/github.com/adlerrobert/terraform-provider-activedirectory
+      - image: circleci/golang:<< pipeline.parameters.go-image-tag >>
+    working_directory: << pipeline.parameters.workingdir >>
     steps:
       - checkout
       - run: go get -v -t -d ./...
-      # - run: make tools
+      - run: make tools
       - run: make fmtcheck
-      #- run: make lint
+      - run: make lint
 
-  test:
+  # golang unit tests #########################################################
+  unit-test:
     docker:
-      - image: circleci/golang:1.13
-      - image: openmicroscopy/apacheds
+      - image: circleci/golang:<< pipeline.parameters.go-image-tag >>
 
-    working_directory: /go/src/github.com/adlerrobert/terraform-provider-activedirectory
+    working_directory: << pipeline.parameters.workingdir >>
+    environment:
+      GOTESTSUM_JUNITFILE: << pipeline.parameters.testdir >>/junit.xml
+      GOTESTSUM_FORMAT: short-verbose
+
     steps:
       - checkout
-      - run:
-          name: GO Get
-          command: go get -v -t -d ./...
-      - run:
-          name: Install dockerize
-          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-          environment:
-            DOCKERIZE_VERSION: v0.6.1
-      - run:
-          name: Wait for apacheds
-          command: dockerize -wait tcp://localhost:10389 -timeout 2m
-      - run:
-          name: Initialize Active Directory environment
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y ldap-utils
-            ldapadd -v -h localhost:10389 -c -x -D "uid=admin,ou=system" -w secret -f ./tests/ad_test_data.ldif
-      - run:
-          name: GO Unit Tests
-          environment:
-            GOTESTSUM_JUNITFILE: /tmp/test-reports/unit/junit.xml
-            GOTESTSUM_FORMAT: short
-          command: |
-            mkdir -p /tmp/test-reports/unit
-            gotestsum -- \
-              -coverprofile=coverage.txt \
-              ./...
-      - run:
-          name: Terraform Acceptance tests
-          environment:
-            AD_HOST: localhost
-            AD_PORT: 10389
-            AD_USE_TLS: false
-            AD_BIND_USER: uid=admin,ou=system
-            AD_BIND_PASSWORD: secret
-            AD_COMPUTER_TEST_BASE_OU: ou=computer,dc=openmicroscopy,dc=org
-          command: make testacc
+      - run: go get -v -t -d ./...
+      - run: mkdir -p << pipeline.parameters.testdir >>
+      - run: make test
       - store_test_results:
-          path: /tmp/test-reports
+          path: << pipeline.parameters.testdir >>
       - run:
-          name: Copy codecov.op
           shell: /bin/bash -eo pipefail
           command: |
             bash <(curl -s https://codecov.io/bash)
+
+  # terraform acceptance tests ################################################
+  integration-test:
+    docker:
+      - image: circleci/golang:<< pipeline.parameters.go-image-tag >>
+      - image: openmicroscopy/apacheds
+
+    working_directory: << pipeline.parameters.workingdir >>
+    environment:
+      DOCKERIZE_VERSION: v0.6.1
+      AD_HOST: << pipeline.parameters.ldap-host >>
+      AD_PORT: << pipeline.parameters.ldap-port >>
+      AD_USE_TLS: << pipeline.parameters.ldap-usetls >>
+      AD_BIND_USER: << pipeline.parameters.ldap-user >>
+      AD_BIND_PASSWORD: << pipeline.parameters.ldap-secret >>
+      AD_COMPUTER_TEST_BASE_OU: << pipeline.parameters.ldap-base-ou >>
+
+    steps:
+      - checkout
+      - run: go get -v -t -d ./...
+      - run: sudo apt-get update && sudo apt-get install -y ldap-utils
+      - run: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+      - run: dockerize -wait tcp://<< pipeline.parameters.ldap-host >>:<< pipeline.parameters.ldap-port >> -timeout 2m
+      - run: ldapadd -v -h << pipeline.parameters.ldap-host >>:<< pipeline.parameters.ldap-port >> -c -x -D "uid=admin,ou=system" -w secret -f ./tests/ad_test_data.ldif
+      - run: make testacc
 
 workflows:
   version: 2.1
   lint_and_test:
     jobs:
-      #- lint
-      - test
+      - lint
+      - unit-test
+          requires:
+            - lint
+      - integration-test
+          requires:
+            - lint
+          

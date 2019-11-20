@@ -26,7 +26,7 @@ parameters:
   
   ldap-usetls:
     type: boolean
-    default: true
+    default: false
 
   ldap-user:
     type: string

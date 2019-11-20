@@ -1,4 +1,4 @@
-package ldap
+package activedirectory
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"gopkg.in/ldap.v3"
 )
 
-// Computer is the base implementation of ldap computer object
+// Computer is the base implementation of ad computer object
 type Computer struct {
 	name       string
 	dn         string

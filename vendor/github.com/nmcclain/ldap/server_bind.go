@@ -1,4 +1,4 @@
-package ldap
+package activedirectory
 
 import (
 	"github.com/nmcclain/asn1-ber"

@@ -1,4 +1,4 @@
-package ldap
+package activedirectory
 
 import (
 	"testing"
@@ -10,13 +10,13 @@ import (
 )
 
 // acceptance tests
-var testAccProviders map[string]terraform.ResourceProvider
-var testAccProvider *schema.Provider
+var testAccProviders map[string]terraform.ResourceProvider // nolint:gochecknoglobals
+var testAccProvider *schema.Provider                       // nolint:gochecknoglobals
 
-func init() {
+func init() { // nolint:gochecknoinits
 	testAccProvider = Provider().(*schema.Provider)
 	testAccProviders = map[string]terraform.ResourceProvider{
-		"ldap": testAccProvider,
+		"activedirectory": testAccProvider,
 	}
 }
 
@@ -28,11 +28,11 @@ func TestProvider(t *testing.T) {
 		assert.NotNil(t, response)
 		assert.IsType(t, &schema.Provider{}, response)
 
-		assert.Equal(t, schema.TypeString, response.(*schema.Provider).Schema["ldap_host"].Type)
-		assert.Equal(t, true, response.(*schema.Provider).Schema["ldap_host"].Required)
+		assert.Equal(t, schema.TypeString, response.(*schema.Provider).Schema["ad_host"].Type)
+		assert.Equal(t, true, response.(*schema.Provider).Schema["ad_host"].Required)
 
-		assert.Equal(t, schema.TypeInt, response.(*schema.Provider).Schema["ldap_port"].Type)
-		assert.Equal(t, false, response.(*schema.Provider).Schema["ldap_port"].Required)
+		assert.Equal(t, schema.TypeInt, response.(*schema.Provider).Schema["ad_port"].Type)
+		assert.Equal(t, false, response.(*schema.Provider).Schema["ad_port"].Required)
 
 		assert.Equal(t, schema.TypeBool, response.(*schema.Provider).Schema["use_tls"].Type)
 		assert.Equal(t, false, response.(*schema.Provider).Schema["use_tls"].Required)
@@ -47,18 +47,18 @@ func TestProvider(t *testing.T) {
 
 func TestProviderConfigure(t *testing.T) {
 	host := "127.0.0.1"
-	port := 3809
+	port := 10389
 
-	go getLDAPServer(host, port)
+	go getADServer(host, port)()
 
-	t.Run("providerConfigure - Should return a api when connection to LDAP was successful", func(t *testing.T) {
+	t.Run("providerConfigure - Should return a api when connection to AD was successful", func(t *testing.T) {
 		resourceSchema := Provider().(*schema.Provider).Schema
 		resourceDataMap := map[string]interface{}{
 			"bind_user":     "Tester",
 			"bind_password": "Password",
 			"use_tls":       false,
-			"ldap_host":     host,
-			"ldap_port":     port,
+			"ad_host":       host,
+			"ad_port":       port,
 		}
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 
@@ -68,19 +68,19 @@ func TestProviderConfigure(t *testing.T) {
 		assert.IsType(t, &API{}, api)
 
 		assert.IsType(t, &ldap.Conn{}, api.(*API).client)
-		assert.Equal(t, host, api.(*API).ldapHost)
-		assert.Equal(t, port, api.(*API).ldapPort)
+		assert.Equal(t, host, api.(*API).adHost)
+		assert.Equal(t, port, api.(*API).adPort)
 		assert.Equal(t, false, api.(*API).useTLS)
 	})
 
-	t.Run("providerConfigure - Should return a error when connection to LDAP failed", func(t *testing.T) {
+	t.Run("providerConfigure - Should return a error when connection to AD failed", func(t *testing.T) {
 		resourceSchema := Provider().(*schema.Provider).Schema
 		resourceDataMap := map[string]interface{}{
 			"bind_user":     "Tester",
 			"bind_password": "wrong",
 			"use_tls":       false,
-			"ldap_host":     host,
-			"ldap_port":     port,
+			"ad_host":       host,
+			"ad_port":       port,
 		}
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 

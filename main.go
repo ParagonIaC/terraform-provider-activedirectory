@@ -1,12 +1,12 @@
 package main
 
 import (
-	ldap "github.com/adlerrobert/terraform-provider-ldap/ldap"
+	ad "github.com/adlerrobert/terraform-provider-activedirectory/activedirectory"
 	"github.com/hashicorp/terraform-plugin-sdk/plugin"
 )
 
 func main() {
 	plugin.Serve(&plugin.ServeOpts{
-		ProviderFunc: ldap.Provider,
+		ProviderFunc: ad.Provider,
 	})
 }

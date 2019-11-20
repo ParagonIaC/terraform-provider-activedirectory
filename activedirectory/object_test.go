@@ -1,4 +1,4 @@
-package ldap
+package activedirectory
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"gopkg.in/ldap.v3"
 )
 
-func createLDAPResult(cntEntries, cntAttributes int) *ldap.SearchResult {
+func createADResult(cntEntries, cntAttributes int) *ldap.SearchResult {
 	result := new(ldap.SearchResult)
 
 	result.Entries = make([]*ldap.Entry, cntEntries)
@@ -32,7 +32,7 @@ func createLDAPResult(cntEntries, cntAttributes int) *ldap.SearchResult {
 func TestSearchObject(t *testing.T) {
 	numberOfObjects := 2
 	numberOfAttributes := 3
-	searchResult := createLDAPResult(numberOfObjects, numberOfAttributes)
+	searchResult := createADResult(numberOfObjects, numberOfAttributes)
 
 	t.Run("searchObject - should forward errors from ldap.client.search", func(t *testing.T) {
 		mockClient := new(MockClient)
@@ -133,7 +133,7 @@ func TestGetObject(t *testing.T) {
 	t.Run("getObject - should return nil when nothing was found", func(t *testing.T) {
 		numberOfObjects := 0
 		numberOfAttributes := 3
-		searchResult := createLDAPResult(numberOfObjects, numberOfAttributes)
+		searchResult := createADResult(numberOfObjects, numberOfAttributes)
 
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(searchResult, nil)
@@ -149,7 +149,7 @@ func TestGetObject(t *testing.T) {
 	t.Run("getObject - should return one object", func(t *testing.T) {
 		numberOfObjects := 1
 		numberOfAttributes := 3
-		searchResult := createLDAPResult(numberOfObjects, numberOfAttributes)
+		searchResult := createADResult(numberOfObjects, numberOfAttributes)
 
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(searchResult, nil)
@@ -171,7 +171,7 @@ func TestGetObject(t *testing.T) {
 	t.Run("getObject - should forward the input values to API.Search", func(t *testing.T) {
 		numberOfObjects := 1
 		numberOfAttributes := 3
-		searchResult := createLDAPResult(numberOfObjects, numberOfAttributes)
+		searchResult := createADResult(numberOfObjects, numberOfAttributes)
 
 		_baseDN := "baseDN"
 		_attributes := []string{"Attribute1", "Atribute2"}

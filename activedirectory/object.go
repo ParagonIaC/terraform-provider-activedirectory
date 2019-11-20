@@ -1,4 +1,4 @@
-package ldap
+package activedirectory
 
 import (
 	"strings"
@@ -7,15 +7,15 @@ import (
 	"gopkg.in/ldap.v3"
 )
 
-// Object is the base implementation of ldap object
+// Object is the base implementation of ad object
 type Object struct {
 	dn         string
 	attributes map[string][]string
 }
 
-// Search returns all ldap objects which match the filter
+// Search returns all ad objects which match the filter
 func (api *API) searchObject(filter, baseDN string, attributes []string) ([]*Object, error) {
-	log.Infof("Searching for ldap objects in %s: %s", baseDN, filter)
+	log.Infof("Searching for ad objects in %s: %s", baseDN, filter)
 
 	if len(attributes) == 0 {
 		attributes = []string{"*"}
@@ -43,26 +43,26 @@ func (api *API) searchObject(filter, baseDN string, attributes []string) ([]*Obj
 	for i, entry := range result.Entries {
 		objects[i] = &Object{
 			dn:         entry.DN,
-			attributes: decodeLDAPAttributes(entry.Attributes),
+			attributes: decodeADAttributes(entry.Attributes),
 		}
 	}
 
 	return objects, nil
 }
 
-// Get returns ldap object with distinguished name dn
+// Get returns ad object with distinguished name dn
 func (api *API) getObject(dn string, attributes []string) (*Object, error) {
-	log.Infof("Trying to get ldap object: %s", dn)
+	log.Infof("Trying to get ad object: %s", dn)
 
 	objects, err := api.searchObject("(objectclass=*)", dn, attributes)
 	if err != nil {
 		if err, ok := err.(*ldap.Error); ok {
 			if err.ResultCode == 32 {
-				log.Info("LDAP object could not be found", dn)
+				log.Info("AD object could not be found", dn)
 				return nil, nil
 			}
 		}
-		log.Errorf("Error will searching for ldap object %s: %s:", dn, err)
+		log.Errorf("Error will searching for ad object %s: %s:", dn, err)
 		return nil, err
 	}
 
@@ -73,11 +73,11 @@ func (api *API) getObject(dn string, attributes []string) (*Object, error) {
 	return objects[0], nil
 }
 
-// Create create a ldap object
+// Create create a ad object
 func (api *API) createObject(dn string, classes []string, attributes map[string][]string) error {
 	log.Infof("Creating object %s (%s)", dn, strings.Join(classes, ","))
 
-	// create ldap add request
+	// create ad add request
 	req := ldap.NewAddRequest(dn, nil)
 	req.Attribute("objectClass", classes)
 
@@ -85,7 +85,7 @@ func (api *API) createObject(dn string, classes []string, attributes map[string]
 		req.Attribute(key, value)
 	}
 
-	// add to ldap
+	// add to ad
 	if err := api.client.Add(req); err != nil {
 		log.Errorf("Creating of object %s failed: %s", dn, err)
 		return err
@@ -96,14 +96,14 @@ func (api *API) createObject(dn string, classes []string, attributes map[string]
 	return nil
 }
 
-// Delete deletes a ldap object
+// Delete deletes a ad object
 func (api *API) deleteObject(dn string) error {
 	log.Infof("Removing object %s", dn)
 
-	// create ldap delete request
+	// create ad delete request
 	req := ldap.NewDelRequest(dn, nil)
 
-	// delete object from ldap
+	// delete object from ad
 	if err := api.client.Del(req); err != nil {
 		log.Errorf("Removing of object %s failed: %s", dn, err)
 		return err
@@ -114,7 +114,7 @@ func (api *API) deleteObject(dn string) error {
 	return nil
 }
 
-// Update updates a ldap object
+// Update updates a ad object
 func (api *API) updateObject(dn string, classes []string, added, changed, removed map[string][]string) error {
 	log.Infof("Updating object %s", dn)
 

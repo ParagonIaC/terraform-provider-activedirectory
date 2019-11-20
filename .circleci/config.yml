@@ -17,7 +17,8 @@ jobs:
   test:
     docker:
       - image: circleci/golang:1.13
-      - image: ojbc/apacheds
+      #- image: ojbc/apacheds
+      - image: openmicroscopy/apacheds
     # parallelism: 4
 
     working_directory: /go/src/github.com/adlerrobert/terraform-provider-ldap

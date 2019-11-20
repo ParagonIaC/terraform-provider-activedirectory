@@ -1,20 +1,20 @@
 TEST?=./...
-PKG_NAME=ldap
+PKG_NAME=activedirectory
 
 default: install
 
 build:
 	go build
-	mv terraform-provider-ldap ~/.terraform.d/plugins/
+	mv terraform-provider-activedirectory ~/.terraform.d/plugins/
 
 install: fmtcheck lint
 	go install
 
-# test: fmtcheck
-# 	go test $(TEST) -timeout=30s -parallel=4
+test: fmtcheck
+	gotestsum -f short-verbose -- -coverprofile=coverage.txt ./...
 
-# testacc: fmtcheck
-# 	TF_ACC=1 go test $(TEST) -v -count 1 -parallel 20 $(TESTARGS) -timeout 120m
+testacc: fmtcheck
+	TF_ACC=1 go test $(TEST) -v -count 1 -parallel 20 -timeout 120m
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."

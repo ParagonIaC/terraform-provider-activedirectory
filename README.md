@@ -1,14 +1,14 @@
-# Terraform Provider - LDAP (Lightweight Directory Access Protocol)
+# Terraform Provider - Active Directory
 
 [![GolangCI](https://golangci.com/badges/github.com/golangci/golangci-lint.svg)](https://golangci.com)
-![CircleCI](https://img.shields.io/circleci/build/github/adlerrobert/terraform-provider-ldap?style=flat-square&cacheSeconds=3600&logo=circleci&label=CircleCI)
-[![codecov](https://codecov.io/gh/adlerrobert/terraform-provider-ldap/branch/master/graph/badge.svg)](https://codecov.io/gh/adlerrobert/terraform-provider-ldap)
-[![GitHub license](https://img.shields.io/github/license/adlerrobert/terraform-provider-ldap.svg?style=flat-square&cacheSeconds=3600)](https://github.com/adlerrobert/terraform-provider-ldap/blob/master/LICENSE)
+![CircleCI](https://img.shields.io/circleci/build/github/adlerrobert/terraform-provider-activedirectory?style=flat-square&logo=circleci&label=CircleCI)
+[![codecov](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory/branch/master/graph/badge.svg)](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory)
+[![GitHub license](https://img.shields.io/github/license/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square&cacheSeconds=3600)](https://github.com/adlerrobert/terraform-provider-activedirectory/blob/master/LICENSE)
 
-[![GitHub release](https://img.shields.io/github/release/adlerrobert/terraform-provider-ldap.svg?style=flat-square&cacheSeconds=3600)](https://GitHub.com/adlerrobert/terraform-provider-ldap/releases/)
-[![GitHub tag](https://img.shields.io/github/tag/adlerrobert/terraform-provider-ldap.svg?style=flat-square&cacheSeconds=3600)](https://github.com/adlerrobert/terraform-provider-ldap/tags/)
+[![GitHub release](https://img.shields.io/github/release/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square)](https://GitHub.com/adlerrobert/terraform-provider-activedirectory/releases/)
+[![GitHub tag](https://img.shields.io/github/tag/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square)](https://github.com/adlerrobert/terraform-provider-activedirectory/tags/)
 
-This is a Terraform  Provider to work with LDAP.
+This is a Terraform  Provider to work with Active Directory.
 
 This provider currently supports only computer objects, but more active directory resources are planned. Please feel free to contribute.
 
@@ -29,17 +29,17 @@ TODO
 The provider is useful for adding and managing computer objects in Active Directory.
 ### Example
 ```hcl
-# Configure the LDAP Provider
-provider "ldap" {
-  ldap_host     = "ldap.example.org"
-  ldap_port     = 389
+# Configure the AD Provider
+provider "activedirectory" {
+  ad_host     = "ad.example.org"
+  ad_port     = 389
   use_tls       = true
   bind_user     = "cn=admin,dc=example,dc=org"
   bind_password = "admin"
 }
 
 # Add computer to Active Directory
-resource "ldap_computer" "foo" {
+resource "activedirectory_computer" "foo" {
   name           = "TestComputerTF"                       # update will force destroy and new
   ou             = "CN=Computers,DC=example,DC=org"       # can be updated
   description    = "terraform sample server"              # can be updated
@@ -48,7 +48,7 @@ resource "ldap_computer" "foo" {
 
 ### Updating Dependencies
 ```console
-$ go get URL
+$ go get github.com/adlerrobert/terraform-provider-activedirectory
 $ go mod tidy
 $ go mod vendor
 ```

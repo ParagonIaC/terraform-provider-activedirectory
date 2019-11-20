@@ -23,7 +23,7 @@
 // AttributeValue ::= OCTET STRING
 //
 
-package ldap
+package activedirectory
 
 import (
 	"log"

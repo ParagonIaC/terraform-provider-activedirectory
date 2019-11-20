@@ -12,4 +12,7 @@
 **/.testing/*
 
 # provider file
-terraform-provider-ldap
+terraform-provider-activedirectory
+
+# test coverage
+coverage.txt

@@ -23,6 +23,7 @@ func getADServer(host string, port int) (f func()) {
 	var server *ldap.Server
 
 	f = func() {
+		log.Errorf("Creating test AD Server Failed:")
 		server = ldap.NewServer()
 		handler := adHandler{}
 		server.BindFunc("", handler)

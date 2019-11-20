@@ -159,8 +159,8 @@ func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv("AD_BIND_PASSWORD"); v == "" {
 		t.Fatal("AD_BIND_PASSWORD must be set for acceptance tests")
 	}
-	if v := os.Getenv("activedirectory_computer_TEST_BASE_OU"); v == "" {
-		t.Fatal("activedirectory_computer_TEST_BASE_OU must be set for acceptance tests")
+	if v := os.Getenv("AD_COMPUTER_TEST_BASE_OU"); v == "" {
+		t.Fatal("AD_COMPUTER_TEST_BASE_OU must be set for acceptance tests")
 	}
 }
 

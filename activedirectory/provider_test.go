@@ -48,7 +48,7 @@ func TestProvider(t *testing.T) {
 
 func TestProviderConfigure(t *testing.T) {
 	host := "127.0.0.1"
-	port := 10389
+	port := 11389
 
 	go getADServer(host, port)()
 	// give ad server time to start

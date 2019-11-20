@@ -9,7 +9,7 @@ import (
 
 func TestConnect(t *testing.T) {
 	host := "127.0.0.1"
-	port := 10389
+	port := 11389
 
 	t.Run("connect - should fail when no server is reachable", func(t *testing.T) {
 		api := &API{

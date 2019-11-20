@@ -95,10 +95,10 @@ jobs:
       - checkout
       - run: go get -v -t -d ./...
       - run: sudo apt-get update && sudo apt-get install -y ldap-utils
-      - run: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+      - run: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
           && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
       - run: dockerize -wait tcp://<< pipeline.parameters.ldap-host >>:<< pipeline.parameters.ldap-port >> -timeout 2m
-      - run: ldapadd -v -h << pipeline.parameters.ldap-host >>:<< pipeline.parameters.ldap-port >> -c -x \
+      - run: ldapadd -v -h << pipeline.parameters.ldap-host >>:<< pipeline.parameters.ldap-port >> -c -x
           -D << pipeline.parameters.ldap-user >> -w << pipeline.parameters.ldap-password >> -f ./tests/ad_test_data.ldif
       - run: make testacc
 

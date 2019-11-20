@@ -15,7 +15,7 @@ import (
 
 // acceptance tests
 func TestAccADComputer_basic(t *testing.T) {
-	ou := os.Getenv("activedirectory_computer_TEST_BASE_OU")
+	ou := os.Getenv("AD_COMPUTER_TEST_BASE_OU")
 	name := "test-acc-computer"
 	description := "terraform"
 
@@ -42,7 +42,7 @@ func TestAccADComputer_basic(t *testing.T) {
 }
 
 func TestAccADComputer_update(t *testing.T) {
-	ou := os.Getenv("activedirectory_computer_TEST_BASE_OU")
+	ou := os.Getenv("AD_COMPUTER_TEST_BASE_OU")
 	name := "test-acc-computer"
 	description := "terraform"
 

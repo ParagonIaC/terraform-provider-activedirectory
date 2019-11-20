@@ -46,8 +46,7 @@ func (api *API) createComputer(dn, cn string, attributes map[string][]string) er
 
 	attributes["name"] = []string{cn}
 	attributes["sAMAccountName"] = []string{cn + "$"}
-	// we have to check if this is set automatically in a Windows AD environment
-	// attributes["userAccountControl"] = []string{"4096"}
+	attributes["userAccountControl"] = []string{"4096"}
 
 	return api.createObject(dn, []string{"computer"}, attributes)
 }

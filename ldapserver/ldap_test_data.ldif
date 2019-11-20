@@ -1,22 +1,81 @@
-# The organizational unit development (devel)
-dn: ou=computer,dc=example,dc=com
+version: 1
+
+# create computer ou
+dn: ou=computer,dc=openmicroscopy,dc=org
+changetype: add
 objectClass: organizationalUnit
+objectClass: top
 ou: computer
 
-dn: ou=update,ou=computer,dc=example,dc=com
-objectClass: organizationalUnit
-ou: update
+# create terraform schema to hold all additional attribute types and object classes
+dn: cn=terraform,ou=schema
+changetype: add
+m-dependencies: system
+m-dependencies: core
+m-dependencies: cosine
+objectclass: metaSchema
+objectclass: top
+cn: computer
 
-dn: cn=custom-attributes,cn=schema,cn=config
-objectClass: olcSchemaConfig
-cn: custom-attributes
-AttributeTypes: ( 1.2.840.113556.1.4.221
-    NAME 'sAMAccountName'
-    SYNTAX '1.3.6.1.4.1.1466.115.121.1.15'
-    SINGLE-VALUE )
-ObjectClasses: ( 1.3.6.1.4.1.4203.666.100.1
-    NAME 'customAttributes'
-    SUP top
-    AUXILIARY
-    DESC 'Custom attributes class'
-    MAY (sAMAccountName))
+# schema ou for attributeTypes
+dn: ou=attributeTypes,cn=terraform,ou=schema
+objectclass: organizationalUnit
+objectclass: top
+ou: attributeTypes
+
+# schema ou for organizationalUnit
+dn: ou=objectClasses,cn=terraform,ou=schema
+objectclass: organizationalUnit
+objectclass: top
+ou: objectClasses
+
+# create attribute type sAMAccountName (Windows AD specific)
+dn: m-oid=1.2.3.4.5.6.7.8.1,ou=attributeTypes,cn=terraform,ou=schema
+objectclass: top
+objectclass: metaTop
+objectclass: metaAttributeType
+m-oid: 1.2.3.4.5.6.7.8.2
+m-collective: FALSE
+m-description: sAMAccountName
+m-equality: caseIgnoreMatch
+m-name: sAMAccountName
+m-nousermodification: FALSE
+m-obsolete: FALSE
+m-singlevalue: TRUE
+m-substr: caseIgnoreSubstringsMatch
+m-syntax: 1.3.6.1.4.1.1466.115.121.1.15
+m-usage: USER_APPLICATIONS
+
+# create attribute type userAccountControl (Windows AD specific)
+dn: m-oid=1.2.3.4.5.6.7.8.2,ou=attributeTypes,cn=terraform,ou=schema
+objectclass: top
+objectclass: metaTop
+objectclass: metaAttributeType
+m-oid: 1.2.3.4.5.6.7.8.3
+m-collective: FALSE
+m-description: userAccountControl
+m-equality: caseIgnoreMatch
+m-name: userAccountControl
+m-nousermodification: FALSE
+m-obsolete: FALSE
+m-singlevalue: TRUE
+m-substr: caseIgnoreSubstringsMatch
+m-syntax: 1.3.6.1.4.1.1466.115.121.1.15
+m-usage: USER_APPLICATIONS
+
+# create object class computer (Windows AD specific)
+dn: m-oid=1.2.3.4.5.6.7.9.1,ou=objectClasses,cn=terraform,ou=schema
+objectclass: top
+objectclass: metaTop
+objectclass: metaObjectClass
+m-oid: 1.2.3.4.5.6.7.9.1
+m-description: computer class
+m-may: description
+m-may: userAccountControl
+m-may: sAMAccountName
+m-may: name
+m-may: displayName
+m-may: uid
+m-may: cn
+m-name: computer
+m-supobjectclass: top

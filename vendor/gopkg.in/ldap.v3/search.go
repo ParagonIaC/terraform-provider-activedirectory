@@ -53,7 +53,7 @@
 //
 //
 
-package ldap
+package activedirectory
 
 import (
 	"errors"

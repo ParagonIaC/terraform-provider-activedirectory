@@ -1,4 +1,4 @@
-package ldap
+package activedirectory
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ func contains(s []string, e string) bool {
 func TestGetComputer(t *testing.T) {
 	numberOfObjects := 1
 	numberOfAttributes := 3
-	searchResult := createLDAPResult(numberOfObjects, numberOfAttributes)
+	searchResult := createADResult(numberOfObjects, numberOfAttributes)
 
 	t.Run("getComputer - should forward errors from api.getObject", func(t *testing.T) {
 		mockClient := new(MockClient)

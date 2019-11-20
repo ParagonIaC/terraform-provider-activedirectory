@@ -1,10 +1,10 @@
-package ldap
+package activedirectory
 
 import (
 	"gopkg.in/ldap.v3"
 )
 
-func decodeLDAPAttributes(attributes []*ldap.EntryAttribute) map[string][]string {
+func decodeADAttributes(attributes []*ldap.EntryAttribute) map[string][]string {
 	attr := make(map[string][]string)
 
 	for _, e := range attributes {

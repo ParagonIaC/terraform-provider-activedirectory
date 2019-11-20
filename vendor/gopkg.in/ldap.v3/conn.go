@@ -1,4 +1,4 @@
-package ldap
+package activedirectory
 
 import (
 	"crypto/tls"
@@ -28,8 +28,8 @@ const (
 )
 
 const (
-	// DefaultLdapPort default ldap port for pure TCP connection
-	DefaultLdapPort = "389"
+	// DefaultadPort default ldap port for pure TCP connection
+	DefaultadPort = "389"
 	// DefaultLdapsPort default ldap port for SSL connection
 	DefaultLdapsPort = "636"
 )
@@ -160,7 +160,7 @@ func DialURL(addr string) (*Conn, error) {
 		return Dial("unix", lurl.Path)
 	case "ldap":
 		if port == "" {
-			port = DefaultLdapPort
+			port = DefaultadPort
 		}
 		return Dial("tcp", net.JoinHostPort(host, port))
 	case "ldaps":

@@ -1,4 +1,4 @@
-// Package ldap - moddn.go contains ModifyDN functionality
+// package activedirectory - moddn.go contains ModifyDN functionality
 //
 // https://tools.ietf.org/html/rfc4511
 // ModifyDNRequest ::= [APPLICATION 12] SEQUENCE {
@@ -8,7 +8,7 @@
 //      newSuperior     [0] LDAPDN OPTIONAL }
 //
 //
-package ldap
+package activedirectory
 
 import (
 	"log"

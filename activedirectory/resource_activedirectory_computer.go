@@ -1,4 +1,4 @@
-package ldap
+package activedirectory
 
 import (
 	"fmt"
@@ -8,20 +8,20 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// resourceLDAPComputerObject is the main function for ad computer terraform resource
-func resourceLDAPComputerObject() *schema.Resource {
+// resourceADComputerObject is the main function for ad computer terraform resource
+func resourceADComputerObject() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceLDAPComputerObjectCreate,
-		Read:   resourceLDAPComputerObjectRead,
-		Update: resourceLDAPComputerObjectUpdate,
-		Delete: resourceLDAPComputerObjectDelete,
+		Create: resourceADComputerObjectCreate,
+		Read:   resourceADComputerObjectRead,
+		Update: resourceADComputerObjectUpdate,
+		Delete: resourceADComputerObjectDelete,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				// this is to ignore case in ldap distinguished name
+				// this is to ignore case in ad distinguished name
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return strings.EqualFold(old, new)
 				},
@@ -29,7 +29,7 @@ func resourceLDAPComputerObject() *schema.Resource {
 			"ou": {
 				Type:     schema.TypeString,
 				Required: true,
-				// this is to ignore case in ldap distinguished name
+				// this is to ignore case in ad distinguished name
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return strings.EqualFold(old, new)
 				},
@@ -43,8 +43,8 @@ func resourceLDAPComputerObject() *schema.Resource {
 	}
 }
 
-// resourceLDAPComputerObjectCreate is 'create' part of terraform CRUD functions for AD provider
-func resourceLDAPComputerObjectCreate(d *schema.ResourceData, meta interface{}) error {
+// resourceADComputerObjectCreate is 'create' part of terraform CRUD functions for AD provider
+func resourceADComputerObjectCreate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(APIInterface)
 	dn := fmt.Sprintf("cn=%s,%s", d.Get("name").(string), d.Get("ou").(string))
 
@@ -58,22 +58,22 @@ func resourceLDAPComputerObjectCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if err := api.createComputer(dn, d.Get("name").(string), attributes); err != nil {
-		log.Errorf("Error while creating ldap computer object %s: %s", dn, err)
+		log.Errorf("Error while creating ad computer object %s: %s", dn, err)
 		return err
 	}
 
 	d.SetId(dn)
-	return resourceLDAPComputerObjectRead(d, meta)
+	return resourceADComputerObjectRead(d, meta)
 }
 
-// resourceLDAPComputerObjectRead is 'read' part of terraform CRUD functions for AD provider
-func resourceLDAPComputerObjectRead(d *schema.ResourceData, meta interface{}) error {
+// resourceADComputerObjectRead is 'read' part of terraform CRUD functions for AD provider
+func resourceADComputerObjectRead(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(APIInterface)
 	dn := fmt.Sprintf("cn=%s,%s", d.Get("name").(string), d.Get("ou").(string))
 
 	computer, err := api.getComputer(dn, []string{"description"})
 	if err != nil {
-		log.Errorf("Error while reading ldap computer object %s: %s", dn, err)
+		log.Errorf("Error while reading ad computer object %s: %s", dn, err)
 		return err
 	}
 
@@ -87,15 +87,15 @@ func resourceLDAPComputerObjectRead(d *schema.ResourceData, meta interface{}) er
 	d.SetId(dn)
 
 	if err := d.Set("description", computer.attributes["description"][0]); err != nil {
-		log.Errorf("Error while setting ldap object's %s description: %s", dn, err)
+		log.Errorf("Error while setting ad object's %s description: %s", dn, err)
 		return err
 	}
 
 	return nil
 }
 
-// resourceLDAPComputerObjectUpdate is 'update' part of terraform CRUD functions for ad provider
-func resourceLDAPComputerObjectUpdate(d *schema.ResourceData, meta interface{}) error {
+// resourceADComputerObjectUpdate is 'update' part of terraform CRUD functions for ad provider
+func resourceADComputerObjectUpdate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(APIInterface)
 	dn := fmt.Sprintf("cn=%s,%s", d.Get("name").(string), d.Get("ou").(string))
 
@@ -138,11 +138,11 @@ func resourceLDAPComputerObjectUpdate(d *schema.ResourceData, meta interface{}) 
 	d.SetId(dn)
 
 	// read current ad data to avoid drift
-	return resourceLDAPComputerObjectRead(d, meta)
+	return resourceADComputerObjectRead(d, meta)
 }
 
-// resourceLDAPComputerObjectDelete is 'delete' part of terraform CRUD functions for ad provider
-func resourceLDAPComputerObjectDelete(d *schema.ResourceData, meta interface{}) error {
+// resourceADComputerObjectDelete is 'delete' part of terraform CRUD functions for ad provider
+func resourceADComputerObjectDelete(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(APIInterface)
 
 	// creating computer dn

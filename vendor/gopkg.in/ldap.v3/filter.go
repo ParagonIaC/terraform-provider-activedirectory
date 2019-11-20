@@ -1,4 +1,4 @@
-package ldap
+package activedirectory
 
 import (
 	"bytes"

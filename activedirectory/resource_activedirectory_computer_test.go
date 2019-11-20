@@ -1,4 +1,4 @@
-package ldap
+package activedirectory
 
 import (
 	"fmt"
@@ -14,8 +14,8 @@ import (
 )
 
 // acceptance tests
-func TestAccLDAPComputer_basic(t *testing.T) {
-	ou := os.Getenv("LDAP_COMPUTER_TEST_BASE_OU")
+func TestAccADComputer_basic(t *testing.T) {
+	ou := os.Getenv("AD_COMPUTER_TEST_BASE_OU")
 	name := "test-acc-computer"
 	description := "terraform"
 
@@ -24,25 +24,25 @@ func TestAccLDAPComputer_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckLDAPComputerDestroy,
+		CheckDestroy: testAccCheckADComputerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceLDAPComputerTestData(ou, name, description),
+				Config: testAccResourceADComputerTestData(ou, name, description),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLDAPComputerExists("ldap_computer.test", &computer),
-					testAccCheckLDAPComputerAttributes(&computer, ou, name, description),
-					resource.TestCheckResourceAttr("ldap_computer.test", "ou", ou),
-					resource.TestCheckResourceAttr("ldap_computer.test", "name", name),
-					resource.TestCheckResourceAttr("ldap_computer.test", "description", description),
-					resource.TestCheckResourceAttr("ldap_computer.test", "id", fmt.Sprintf("cn=%s,%s", name, ou)),
+					testAccCheckADComputerExists("activedirectory_computer.test", &computer),
+					testAccCheckADComputerAttributes(&computer, ou, name, description),
+					resource.TestCheckResourceAttr("activedirectory_computer.test", "ou", ou),
+					resource.TestCheckResourceAttr("activedirectory_computer.test", "name", name),
+					resource.TestCheckResourceAttr("activedirectory_computer.test", "description", description),
+					resource.TestCheckResourceAttr("activedirectory_computer.test", "id", fmt.Sprintf("cn=%s,%s", name, ou)),
 				),
 			},
 		},
 	})
 }
 
-func TestAccLDAPComputer_update(t *testing.T) {
-	ou := os.Getenv("LDAP_COMPUTER_TEST_BASE_OU")
+func TestAccADComputer_update(t *testing.T) {
+	ou := os.Getenv("AD_COMPUTER_TEST_BASE_OU")
 	name := "test-acc-computer"
 	description := "terraform"
 
@@ -54,26 +54,26 @@ func TestAccLDAPComputer_update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckLDAPComputerDestroy,
+		CheckDestroy: testAccCheckADComputerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceLDAPComputerTestData(ou, name, description),
+				Config: testAccResourceADComputerTestData(ou, name, description),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLDAPComputerExists("ldap_computer.test", &computer),
-					testAccCheckLDAPComputerAttributes(&computer, ou, name, description),
-					resource.TestCheckResourceAttr("ldap_computer.test", "ou", ou),
-					resource.TestCheckResourceAttr("ldap_computer.test", "name", name),
-					resource.TestCheckResourceAttr("ldap_computer.test", "description", description),
-					resource.TestCheckResourceAttr("ldap_computer.test", "id", fmt.Sprintf("cn=%s,%s", name, ou)),
+					testAccCheckADComputerExists("activedirectory_computer.test", &computer),
+					testAccCheckADComputerAttributes(&computer, ou, name, description),
+					resource.TestCheckResourceAttr("activedirectory_computer.test", "ou", ou),
+					resource.TestCheckResourceAttr("activedirectory_computer.test", "name", name),
+					resource.TestCheckResourceAttr("activedirectory_computer.test", "description", description),
+					resource.TestCheckResourceAttr("activedirectory_computer.test", "id", fmt.Sprintf("cn=%s,%s", name, ou)),
 				),
 			},
 			{
-				Config: testAccResourceLDAPComputerTestData(updatedOU, name, updatedDescription),
+				Config: testAccResourceADComputerTestData(updatedOU, name, updatedDescription),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckLDAPComputerExists("ldap_computer.test", &computer),
-					testAccCheckLDAPComputerAttributes(&computer, updatedOU, name, updatedDescription),
-					resource.TestCheckResourceAttr("ldap_computer.test", "ou", updatedOU),
-					resource.TestCheckResourceAttr("ldap_computer.test", "description", updatedDescription),
+					testAccCheckADComputerExists("activedirectory_computer.test", &computer),
+					testAccCheckADComputerAttributes(&computer, updatedOU, name, updatedDescription),
+					resource.TestCheckResourceAttr("activedirectory_computer.test", "ou", updatedOU),
+					resource.TestCheckResourceAttr("activedirectory_computer.test", "description", updatedDescription),
 				),
 			},
 		},
@@ -81,11 +81,11 @@ func TestAccLDAPComputer_update(t *testing.T) {
 }
 
 // acceptance test helpers
-func testAccCheckLDAPComputerDestroy(s *terraform.State) error {
+func testAccCheckADComputerDestroy(s *terraform.State) error {
 	api := testAccProvider.Meta().(*API)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "ldap_computer" {
+		if rs.Type != "activedirectory_computer" {
 			continue
 		}
 
@@ -95,22 +95,22 @@ func testAccCheckLDAPComputerDestroy(s *terraform.State) error {
 		}
 
 		if computer != nil {
-			return fmt.Errorf("ldap computer (%s) still exists", rs.Primary.ID)
+			return fmt.Errorf("ad computer (%s) still exists", rs.Primary.ID)
 		}
 	}
 
 	return nil
 }
 
-func testAccCheckLDAPComputerExists(resourceName string, computer *Computer) resource.TestCheckFunc {
+func testAccCheckADComputerExists(resourceName string, computer *Computer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("LDAP computer ID is not set")
+			return fmt.Errorf("AD computer ID is not set")
 		}
 
 		api := testAccProvider.Meta().(*API)
@@ -125,7 +125,7 @@ func testAccCheckLDAPComputerExists(resourceName string, computer *Computer) res
 	}
 }
 
-func testAccCheckLDAPComputerAttributes(computer *Computer, ou, name, description string) resource.TestCheckFunc {
+func testAccCheckADComputerAttributes(computer *Computer, ou, name, description string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if computer.name != name {
 			return fmt.Errorf("computer name not set correctly")
@@ -144,56 +144,43 @@ func testAccCheckLDAPComputerAttributes(computer *Computer, ou, name, descriptio
 }
 
 func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("LDAP_HOST"); v == "" {
-		t.Fatal("LDAP_HOST must be set for acceptance tests")
+	if v := os.Getenv("AD_HOST"); v == "" {
+		t.Fatal("AD_HOST must be set for acceptance tests")
 	}
-	if v := os.Getenv("LDAP_PORT"); v == "" {
-		t.Fatal("LDAP_PORT must be set for acceptance tests")
+	if v := os.Getenv("AD_PORT"); v == "" {
+		t.Fatal("AD_PORT must be set for acceptance tests")
 	}
-	if v := os.Getenv("LDAP_USE_TLS"); v == "" {
-		t.Fatal("LDAP_USE_TLS must be set for acceptance tests")
+	if v := os.Getenv("AD_USE_TLS"); v == "" {
+		t.Fatal("AD_USE_TLS must be set for acceptance tests")
 	}
-	if v := os.Getenv("LDAP_BIND_USER"); v == "" {
-		t.Fatal("LDAP_BIND_USER must be set for acceptance tests")
+	if v := os.Getenv("AD_BIND_USER"); v == "" {
+		t.Fatal("AD_BIND_USER must be set for acceptance tests")
 	}
-	if v := os.Getenv("LDAP_BIND_PASSWORD"); v == "" {
-		t.Fatal("LDAP_BIND_PASSWORD must be set for acceptance tests")
+	if v := os.Getenv("AD_BIND_PASSWORD"); v == "" {
+		t.Fatal("AD_BIND_PASSWORD must be set for acceptance tests")
 	}
-	if v := os.Getenv("LDAP_COMPUTER_TEST_BASE_OU"); v == "" {
-		t.Fatal("LDAP_COMPUTER_TEST_BASE_OU must be set for acceptance tests")
+	if v := os.Getenv("AD_COMPUTER_TEST_BASE_OU"); v == "" {
+		t.Fatal("AD_COMPUTER_TEST_BASE_OU must be set for acceptance tests")
 	}
 }
 
 // acceptance test data
-func testAccResourceLDAPComputerTestData(ou, name, description string) string {
+func testAccResourceADComputerTestData(ou, name, description string) string {
 	return fmt.Sprintf(`
-provider "ldap" {
-	ldap_host      = "%s"
-	ldap_port      = %s
-	use_tls		   = false
-	bind_user      = "%s"
-	bind_password  = "%s"
-}
-
-resource "ldap_computer" "test" {
+resource "activedirectory_computer" "test" {
 	ou           = "%s"
 	name         = "%s"
 	description  = "%s"
 }
 	`,
-		os.Getenv("LDAP_HOST"),
-		os.Getenv("LDAP_PORT"),
-		// os.Getenv("LDAP_USE_TLS"),
-		os.Getenv("LDAP_BIND_USER"),
-		os.Getenv("LDAP_BIND_PASSWORD"),
 		ou, name, description,
 	)
 }
 
 // unit tests
-func TestResourceLDAPComputerObject(t *testing.T) {
-	t.Run("resourceLDAPComputerObject - should return *schema.Resource", func(t *testing.T) {
-		response := resourceLDAPComputerObject()
+func TestResourceADComputerObject(t *testing.T) {
+	t.Run("resourceADComputerObject - should return *schema.Resource", func(t *testing.T) {
+		response := resourceADComputerObject()
 		assert.IsType(t, &schema.Resource{}, response)
 
 		assert.Equal(t, schema.TypeString, response.Schema["name"].Type)
@@ -207,7 +194,7 @@ func TestResourceLDAPComputerObject(t *testing.T) {
 	})
 }
 
-func TestResourceLDAPComputerObjectCreate(t *testing.T) {
+func TestResourceADComputerObjectCreate(t *testing.T) {
 	name := "Test1"
 	ou := "ou=test1,ou=org"
 	description := "terraform"
@@ -220,48 +207,48 @@ func TestResourceLDAPComputerObjectCreate(t *testing.T) {
 		},
 	}
 
-	resourceSchema := resourceLDAPComputerObject().Schema
+	resourceSchema := resourceADComputerObject().Schema
 	resourceDataMap := map[string]interface{}{
 		"name":        name,
 		"ou":          ou,
 		"description": description,
 	}
 
-	t.Run("resourceLDAPComputerObjectCreate - should return nil when everything is good", func(t *testing.T) {
+	t.Run("resourceADComputerObjectCreate - should return nil when everything is good", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("createComputer", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceLDAPComputerObjectCreate(resourceLocalData, api)
+		err := resourceADComputerObjectCreate(resourceLocalData, api)
 
 		assert.NoError(t, err)
 	})
 
-	t.Run("resourceLDAPComputerObjectCreate - should return error when creating failed", func(t *testing.T) {
+	t.Run("resourceADComputerObjectCreate - should return error when creating failed", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("createComputer", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceLDAPComputerObjectCreate(resourceLocalData, api)
+		err := resourceADComputerObjectCreate(resourceLocalData, api)
 
 		assert.Error(t, err)
 	})
 
-	t.Run("resourceLDAPComputerObjectCreate - id should be set to dn", func(t *testing.T) {
+	t.Run("resourceADComputerObjectCreate - id should be set to dn", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("createComputer", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceLDAPComputerObjectCreate(resourceLocalData, api)
+		err := resourceADComputerObjectCreate(resourceLocalData, api)
 
 		assert.NoError(t, err)
 		assert.Equal(t, resourceLocalData.Id(), testComputer.dn)
 	})
 }
 
-func TestResourceLDAPComputerObjectRead(t *testing.T) {
+func TestResourceADComputerObjectRead(t *testing.T) {
 	name := "Test2"
 	ou := "ou=test2,ou=org"
 	description := "terraform"
@@ -274,57 +261,57 @@ func TestResourceLDAPComputerObjectRead(t *testing.T) {
 		},
 	}
 
-	resourceSchema := resourceLDAPComputerObject().Schema
+	resourceSchema := resourceADComputerObject().Schema
 	resourceDataMap := map[string]interface{}{
 		"name":        name,
 		"ou":          ou,
 		"description": "other desciption",
 	}
 
-	t.Run("resourceLDAPComputerObjectRead - should return nil when everything is good", func(t *testing.T) {
+	t.Run("resourceADComputerObjectRead - should return nil when everything is good", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceLDAPComputerObjectRead(resourceLocalData, api)
+		err := resourceADComputerObjectRead(resourceLocalData, api)
 
 		assert.NoError(t, err)
 	})
 
-	t.Run("resourceLDAPComputerObjectRead - should return error when reading failed", func(t *testing.T) {
+	t.Run("resourceADComputerObjectRead - should return error when reading failed", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getComputer", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceLDAPComputerObjectRead(resourceLocalData, api)
+		err := resourceADComputerObjectRead(resourceLocalData, api)
 
 		assert.Error(t, err)
 	})
 
-	t.Run("resourceLDAPComputerObjectRead - should return nil and id set to nil when not found", func(t *testing.T) {
+	t.Run("resourceADComputerObjectRead - should return nil and id set to nil when not found", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getComputer", mock.Anything, mock.Anything).Return(nil, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceLDAPComputerObjectRead(resourceLocalData, api)
+		err := resourceADComputerObjectRead(resourceLocalData, api)
 
 		assert.NoError(t, err)
 		assert.Equal(t, resourceLocalData.Id(), "")
 	})
 
-	t.Run("resourceLDAPComputerObjectRead - should set 'description' accordingly", func(t *testing.T) {
+	t.Run("resourceADComputerObjectRead - should set 'description' accordingly", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceLDAPComputerObjectRead(resourceLocalData, api)
+		err := resourceADComputerObjectRead(resourceLocalData, api)
 
 		assert.NoError(t, err)
 		assert.Equal(t, resourceLocalData.Get("description").(string), testComputer.attributes["description"][0])
 	})
 }
 
-func TestResourceLDAPComputerObjectUpdate(t *testing.T) {
+func TestResourceADComputerObjectUpdate(t *testing.T) {
 	name := "Test3"
 	ou := "ou=test3,ou=org"
 	description := "terraform"
@@ -337,73 +324,73 @@ func TestResourceLDAPComputerObjectUpdate(t *testing.T) {
 		},
 	}
 
-	resourceSchema := resourceLDAPComputerObject().Schema
+	resourceSchema := resourceADComputerObject().Schema
 	resourceDataMap := map[string]interface{}{
 		"name":        name,
 		"ou":          ou,
 		"description": description,
 	}
 
-	t.Run("resourceLDAPComputerObjectUpdate - should return nil when everything is okay", func(t *testing.T) {
+	t.Run("resourceADComputerObjectUpdate - should return nil when everything is okay", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
 		api.On("updateComputerAttributes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		api.On("updateComputerOU", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceLDAPComputerObjectUpdate(resourceLocalData, api)
+		err := resourceADComputerObjectUpdate(resourceLocalData, api)
 
 		assert.NoError(t, err)
 	})
 
-	t.Run("resourceLDAPComputerObjectUpdate - should return error when updateComputerAttributes fails", func(t *testing.T) {
+	t.Run("resourceADComputerObjectUpdate - should return error when updateComputerAttributes fails", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
 		api.On("updateComputerAttributes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceLDAPComputerObjectUpdate(resourceLocalData, api)
+		err := resourceADComputerObjectUpdate(resourceLocalData, api)
 
 		assert.Error(t, err)
 	})
 
-	t.Run("resourceLDAPComputerObjectUpdate - should return error when updateComputerOU fails", func(t *testing.T) {
+	t.Run("resourceADComputerObjectUpdate - should return error when updateComputerOU fails", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
 		api.On("updateComputerAttributes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		api.On("updateComputerOU", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceLDAPComputerObjectUpdate(resourceLocalData, api)
+		err := resourceADComputerObjectUpdate(resourceLocalData, api)
 
 		assert.Error(t, err)
 	})
 }
 
-func TestResourceLDAPComputerObjectDelete(t *testing.T) {
-	resourceSchema := resourceLDAPComputerObject().Schema
+func TestResourceADComputerObjectDelete(t *testing.T) {
+	resourceSchema := resourceADComputerObject().Schema
 	resourceDataMap := map[string]interface{}{
 		"name":        "test",
 		"ou":          "ou",
 		"description": "other desciption",
 	}
 
-	t.Run("resourceLDAPComputerObjectDelete - should forward errors from api.deleteComputer", func(t *testing.T) {
+	t.Run("resourceADComputerObjectDelete - should forward errors from api.deleteComputer", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("deleteComputer", mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceLDAPComputerObjectDelete(resourceLocalData, api)
+		err := resourceADComputerObjectDelete(resourceLocalData, api)
 
 		assert.Error(t, err)
 	})
 
-	t.Run("resourceLDAPComputerObjectDelete - should return nil if deleting was successful", func(t *testing.T) {
+	t.Run("resourceADComputerObjectDelete - should return nil if deleting was successful", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("deleteComputer", mock.Anything).Return(nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceLDAPComputerObjectDelete(resourceLocalData, api)
+		err := resourceADComputerObjectDelete(resourceLocalData, api)
 
 		assert.NoError(t, err)
 	})

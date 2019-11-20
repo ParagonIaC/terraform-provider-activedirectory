@@ -1,11 +1,11 @@
 TEST?=./...
-PKG_NAME=ldap
+PKG_NAME=activedirectory
 
 default: install
 
 build:
 	go build
-	mv terraform-provider-ldap ~/.terraform.d/plugins/
+	mv terraform-provider-activedirectory ~/.terraform.d/plugins/
 
 install: fmtcheck lint
 	go install

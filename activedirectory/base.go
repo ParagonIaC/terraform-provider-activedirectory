@@ -1,4 +1,4 @@
-package ldap
+package activedirectory
 
 import (
 	"crypto/tls"
@@ -8,7 +8,7 @@ import (
 	"gopkg.in/ldap.v3"
 )
 
-// APIInterface is the basic interface for LDAP API
+// APIInterface is the basic interface for AD API
 type APIInterface interface {
 	connect() error
 
@@ -29,8 +29,8 @@ type APIInterface interface {
 
 // API is the basic struct which should implement the interface
 type API struct {
-	ldapHost     string
-	ldapPort     int
+	adHost       string
+	adPort       int
 	useTLS       bool
 	bindUser     string
 	bindPassword string
@@ -39,11 +39,11 @@ type API struct {
 
 // connects to an Active Directory server
 func (api *API) connect() (err error) {
-	log.Debugf("Trying LDAP connection with user %s to server %s", api.bindUser, api.ldapHost)
+	log.Debugf("Trying AD connection with user %s to server %s", api.bindUser, api.adHost)
 
-	api.client, err = ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.ldapHost, api.ldapPort))
+	api.client, err = ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.adHost, api.adPort))
 	if err != nil {
-		log.Errorf("Connection to %s:%d failed: %s", api.ldapHost, api.ldapPort, err)
+		log.Errorf("Connection to %s:%d failed: %s", api.adHost, api.adPort, err)
 		return err
 	}
 
@@ -60,6 +60,6 @@ func (api *API) connect() (err error) {
 		return err
 	}
 
-	log.Debugf("LDAP connection successful for user: %s", api.bindUser)
+	log.Debugf("AD connection successful for user: %s", api.bindUser)
 	return nil
 }

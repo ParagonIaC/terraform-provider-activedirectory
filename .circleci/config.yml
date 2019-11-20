@@ -21,11 +21,11 @@ parameters:
     default: localhost
   
   ldap-port:
-    type: int
+    type: integer
     default: 10389
   
   ldap-ustls:
-    type: bool
+    type: boolean
     default: true
 
   ldap-user:

@@ -53,15 +53,15 @@ jobs:
               -coverprofile=coverage.txt \
               ./...
       - run:
-        name: Terraform Acceptance tests
-        environment:
-          LDAP_HOST: localhost
-          LDAP_PORT: 10389
-          LDAP_USE_TLS: false
-          LDAP_BIND_USER: uid=admin,ou=system
-          LDAP_BIND_PASSWORD: secret
-          LDAP_COMPUTER_TEST_BASE_OU: ou=computer,dc=openmicroscopy,dc=org
-        command: make testacc
+          name: Terraform Acceptance tests
+          environment:
+            LDAP_HOST: localhost
+            LDAP_PORT: 10389
+            LDAP_USE_TLS: false
+            LDAP_BIND_USER: uid=admin,ou=system
+            LDAP_BIND_PASSWORD: secret
+            LDAP_COMPUTER_TEST_BASE_OU: ou=computer,dc=openmicroscopy,dc=org
+          command: make testacc
       - store_test_results:
           path: /tmp/test-reports
       - run:

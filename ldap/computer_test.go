@@ -86,9 +86,9 @@ func TestCreateComputer(t *testing.T) {
 			ret := sr.DN == _name
 
 			stdAttributes := map[string][]string{
-				"name":               {_name},
-				"sAMAccountName":     {_name + "$"},
-				"userAccountControl": {"4096"},
+				"name":           {_name},
+				"sAMAccountName": {_name + "$"},
+				// "userAccountControl": {"4096"},
 			}
 
 			found := 0

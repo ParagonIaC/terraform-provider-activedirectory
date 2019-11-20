@@ -7,6 +7,13 @@ objectClass: organizationalUnit
 objectClass: top
 ou: computer
 
+# create update ou for moveDN test 
+dn: ou=update,ou=computer,dc=openmicroscopy,dc=org
+changetype: add
+objectClass: organizationalUnit
+objectClass: top
+ou: update
+
 # create terraform schema to hold all additional attribute types and object classes
 dn: cn=terraform,ou=schema
 changetype: add

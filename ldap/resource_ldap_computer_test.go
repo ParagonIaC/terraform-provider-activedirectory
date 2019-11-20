@@ -34,7 +34,7 @@ func TestAccLDAPComputer_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("ldap_computer.test", "ou", ou),
 					resource.TestCheckResourceAttr("ldap_computer.test", "name", name),
 					resource.TestCheckResourceAttr("ldap_computer.test", "description", description),
-					resource.TestCheckResourceAttr("ldap_computer.test", "id", fmt.Sprintf("cn=%s,%s", ou, name)),
+					resource.TestCheckResourceAttr("ldap_computer.test", "id", fmt.Sprintf("cn=%s,%s", name, ou)),
 				),
 			},
 		},
@@ -64,7 +64,7 @@ func TestAccLDAPComputer_update(t *testing.T) {
 					resource.TestCheckResourceAttr("ldap_computer.test", "ou", ou),
 					resource.TestCheckResourceAttr("ldap_computer.test", "name", name),
 					resource.TestCheckResourceAttr("ldap_computer.test", "description", description),
-					resource.TestCheckResourceAttr("ldap_computer.test", "id", fmt.Sprintf("cn=%s,%s", ou, name)),
+					resource.TestCheckResourceAttr("ldap_computer.test", "id", fmt.Sprintf("cn=%s,%s", name, ou)),
 				),
 			},
 			{

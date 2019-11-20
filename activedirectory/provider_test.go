@@ -2,6 +2,7 @@ package activedirectory
 
 import (
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -50,6 +51,8 @@ func TestProviderConfigure(t *testing.T) {
 	port := 10389
 
 	go getADServer(host, port)()
+	// give ad server time to start
+	time.Sleep(1000 * time.Millisecond)
 
 	t.Run("providerConfigure - Should return a api when connection to AD was successful", func(t *testing.T) {
 		resourceSchema := Provider().(*schema.Provider).Schema

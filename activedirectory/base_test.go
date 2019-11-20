@@ -26,7 +26,7 @@ func TestConnect(t *testing.T) {
 	go getADServer(host, port)()
 
 	// give ad server time to start
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(1000 * time.Millisecond)
 
 	t.Run("connect - should fail when authentication fails", func(t *testing.T) {
 		api := &API{

@@ -70,12 +70,10 @@ func TestAccLDAPComputer_update(t *testing.T) {
 			{
 				Config: testAccResourceLDAPComputerTestData(updatedOU, name, updatedDescription),
 				Check: resource.ComposeTestCheckFunc(
-					// testAccCheckLDAPComputerExists("ldap_computer.test", &computer),
-					// testAccCheckLDAPComputerAttributes(&computer, ou, name, description),
+					testAccCheckLDAPComputerExists("ldap_computer.test", &computer),
+					testAccCheckLDAPComputerAttributes(&computer, updatedOU, name, updatedDescription),
 					resource.TestCheckResourceAttr("ldap_computer.test", "ou", updatedOU),
-					// resource.TestCheckResourceAttr("ldap_computer.test", "name", name),
 					resource.TestCheckResourceAttr("ldap_computer.test", "description", updatedDescription),
-					// resource.TestCheckResourceAttr("ldap_computer.test", "id", fmt.Sprintf("cn=%s,%s", ou, name)),
 				),
 			},
 		},

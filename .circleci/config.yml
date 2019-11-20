@@ -65,7 +65,7 @@ jobs:
       - store_test_results:
           path: /tmp/test-reports
       - run:
-          name: Upload test results to codecov.op
+          name: Copy codecov.op
           shell: /bin/bash -eo pipefail
           command: |
             bash <(curl -s https://codecov.io/bash)

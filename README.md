@@ -5,8 +5,8 @@
 [![codecov](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory/branch/master/graph/badge.svg)](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory)
 [![GitHub license](https://img.shields.io/github/license/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square&cacheSeconds=3600)](https://github.com/adlerrobert/terraform-provider-activedirectory/blob/master/LICENSE)
 
-[![GitHub release](https://img.shields.io/github/release/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square&cacheSeconds=3600)](https://GitHub.com/adlerrobert/terraform-provider-activedirectory/releases/)
-[![GitHub tag](https://img.shields.io/github/tag/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square&cacheSeconds=3600)](https://github.com/adlerrobert/terraform-provider-activedirectory/tags/)
+[![GitHub release](https://img.shields.io/github/release/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square)](https://GitHub.com/adlerrobert/terraform-provider-activedirectory/releases/)
+[![GitHub tag](https://img.shields.io/github/tag/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square)](https://github.com/adlerrobert/terraform-provider-activedirectory/tags/)
 
 This is a Terraform  Provider to work with Active Directory.
 

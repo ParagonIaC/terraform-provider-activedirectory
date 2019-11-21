@@ -92,14 +92,15 @@ $ make testacc
 ```
 
  For `make testacc` you have to set the following environment variables:
+
  | Variable | Description | Example | Default | Required |
  | -------- | ----------- | ------- | ------- | :------: |
- | AD_HOST | Domain Controller to connect to | dc.example.org | - | yes |
+ | AD_HOST | Domain Controller | dc.example.org | - | yes |
  | AD_PORT | LDAP Port - 389 TCP | 389 | 389 | no |
  | AD_USE_TLS | Use secure connection | false | true | no |
  | AD_BIND_USER | Admin user DN | cn=admin,dc=example,dc=org | - | yes |
  | AD_BIND_PASSWORD | Password of the admin user | secret | - | yes |
- | AD_COMPUTER_TEST_BASE_OU | Base OU for the test cases | ou=TerraformTests,ou=computer,dc=example,dc=org | yes (for tests) |
+ | AD_COMPUTER_TEST_BASE_OU | OU for the test cases | ou=TerraformTests,dc=example,dc=org | yes (for tests) |
 
 ## Contributing
 Terraform is the work of thousands of contributors. We appreciate your help!

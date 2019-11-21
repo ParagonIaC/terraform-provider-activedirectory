@@ -1,7 +1,7 @@
 ---
 name: "\U0001F4AC Question"
 about: If you have a question, please check out other community resources!
-title: "[QUESTION]"
+title: ""
 labels: question
 assignees: ''
 

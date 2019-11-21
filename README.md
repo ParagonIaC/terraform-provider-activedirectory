@@ -55,7 +55,7 @@ To use a released provider in your Terraform environment, run [`terraform init`]
 
 To instead use a custom-built provider in your Terraform environment (e.g. the provider binary from the build instructions above), follow the instructions to [install it as a plugin.](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin) After placing it into your plugins directory, run `terraform init` to initialize it.
 
-The Active Directory provider is use to interact with Microsoft Active Directory. The provider needs to be configured with the proper credentials before it can be used. for adding and managing computer objects in Active Directory.
+The Active Directory provider is use to interact with Microsoft Active Directory. The provider needs to be configured with the proper credentials before it can be used.
 
 Currently the provider only supports Active Directory Computer objects.
 

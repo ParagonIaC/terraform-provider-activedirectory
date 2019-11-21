@@ -1,4 +1,4 @@
-# Contributing to Terraform - AWS Provider
+# Contributing to Terraform - Active Directory Provider
 
 **First:** if you're unsure or afraid of _anything_, ask for help! You can
 submit a work in progress (WIP) pull request, or file an issue with the parts
@@ -24,11 +24,7 @@ ability to merge PRs and respond to issues.
     - [Checklists for Contribution](#checklists-for-contribution)
         - [Documentation Update](#documentation-update)
         - [Enhancement/Bugfix to a Resource](#enhancementbugfix-to-a-resource)
-        - [Adding Resource Import Support](#adding-resource-import-support)
-        - [Adding Resource Tagging Support](#adding-resource-tagging-support)
         - [New Resource](#new-resource)
-        - [New Service](#new-service)
-        - [New Region](#new-region)
     - [Common Review Items](#common-review-items)
         - [Go Coding Style](#go-coding-style)
         - [Resource Contribution Guidelines](#resource-contribution-guidelines)
@@ -37,8 +33,6 @@ ability to merge PRs and respond to issues.
         - [Acceptance Tests Often Cost Money to Run](#acceptance-tests-often-cost-money-to-run)
         - [Running an Acceptance Test](#running-an-acceptance-test)
         - [Writing an Acceptance Test](#writing-an-acceptance-test)
-        - [Writing and running Cross-Account Acceptance Tests](#writing-and-running-cross-account-acceptance-tests)
-        - [Writing and running Cross-Region Acceptance Tests](#writing-and-running-cross-region-acceptance-tests)
 
 <!-- /TOC -->
 
@@ -50,7 +44,7 @@ We welcome issues of all kinds including feature requests, bug reports, and
 general questions. Below you'll find checklists with guidelines for well-formed
 issues of each type.
 
-#### [Bug Reports](https://github.com/adlerrobert/terraform-provider-activedirectory/issues/new?template=Bug_Report.md)
+#### [Bug Reports](https://github.com/adlerrobert/terraform-provider-activedirectory/issues/new?template=---bug-report.md)
 
  - [ ] __Test against latest release__: Make sure you test against the latest
    released version. It is possible we already fixed the bug you're experiencing.
@@ -68,7 +62,7 @@ issues of each type.
    create a [gist](https://gist.github.com) of the *entire* generated crash log
    for us to look at. Double check no sensitive items were in the log.
 
-#### [Feature Requests](https://github.com/adlerrobert/terraform-provider-activedirectory/issues/new?labels=enhancement&template=Feature_Request.md)
+#### [Feature Requests](https://github.com/adlerrobert/terraform-provider-activedirectory/issues/new?labels=enhancement&template=---feature-request.md)
 
  - [ ] __Search for possible duplicate requests__: It's helpful to keep requests
    consolidated to one thread, so do a quick search on existing requests to
@@ -80,7 +74,7 @@ issues of each type.
    out the reason why the feature would be important and how it would benefit
    Terraform users.
 
-#### [Questions](https://github.com/adlerrobert/terraform-provider-activedirectory/issues/new?labels=question&template=Question.md)
+#### [Questions](https://github.com/adlerrobert/terraform-provider-activedirectory/issues/new?labels=question&template=---question.md)
 
  - [ ] __Search for answers in Terraform documentation__: We're happy to answer
    questions in GitHub Issues. Oftentimes Question issues result in documentation updates
@@ -135,12 +129,11 @@ expect:
 
 1. One of team members will look over your contribution and
    either approve it or provide comments letting you know if there is anything
-   left to do. We do our best to keep up with the volume of PRs waiting for
-   review, but it may take some time depending on the complexity of the work.
+   left to do.
 
 1. Once all outstanding comments and checklist items have been addressed, your
    contribution will be merged! Merged PRs will be included in the next
-   Terraform release. The provider team takes care of updating the CHANGELOG as
+   release. The provider team takes care of updating the CHANGELOG as
    they merge.
 
 1. In some cases, we might decide that a PR should be closed without merging.
@@ -175,7 +168,7 @@ guidelines.
    that is used, but it's often better to add a new test. You can copy/paste an
    existing test and follow the conventions you see there, modifying the test
    to exercise the behavior of your code.
- - [ ] __Documentation updates__: If your code makes any changes that need to
+ - [ ] __Documentation updates (WIP)__: If your code makes any changes that need to
    be documented, you should include those doc updates in the same PR. This
    includes things like new resource attributes or changes in default values.
    The [Terraform website][website] source is in this repo and includes
@@ -244,7 +237,6 @@ The following Go language resources provide common coding preferences that may b
 The following resource checks need to be addressed before your contribution can be merged. The exclusion of any applicable check may result in a delayed time to merge.
 
 - [ ] __Passes Testing__: All code and documentation changes must pass unit testing, code linting, and website link testing. Resource code changes must pass all acceptance testing for the resource.
-- [ ] __Avoids API Calls Across Account, Region, and Service Boundaries__: Resources should not implement cross-account, cross-region, or cross-service API calls.
 - [ ] __Avoids Optional and Required for Non-Configurable Attributes__: Resource schema definitions for read-only attributes should not include `Optional: true` or `Required: true`.
 - [ ] __Avoids resource.Retry() without resource.RetryableError()__: Resource logic should only implement [`resource.Retry()`](https://godoc.org/github.com/hashicorp/terraform/helper/resource#Retry) if there is a retryable condition (e.g. `return resource.RetryableError(err)`).
 - [ ] __Avoids Resource Read Function in Data Source Read Function__: Data sources should fully implement their own resource `Read` functionality including duplicating `d.Set()` calls.
@@ -260,7 +252,6 @@ The following resource checks need to be addressed before your contribution can 
 - [ ] __Uses TypeList and MaxItems: 1__: Configuration block attributes (e.g. `Type: schema.TypeList` or `Type: schema.TypeSet` with `Elem: &schema.Resource{...}`) that can only have one block should use `Type: schema.TypeList` and `MaxItems: 1` in the schema definition.
 - [ ] __Uses Existing Validation Functions__: Schema definitions including `ValidateFunc` for attribute validation should use available [Terraform `helper/validation` package](https://godoc.org/github.com/hashicorp/terraform/helper/validation) functions. `All()`/`Any()` can be used for combining multiple validation function behaviors.
 - [ ] __Uses resource.NotFoundError__: Custom errors for missing resources should use [`resource.NotFoundError`](https://godoc.org/github.com/hashicorp/terraform/helper/resource#NotFoundError).
-- [ ] __Uses resource.UniqueId()__: API fields for concurrency protection such as `CallerReference` and `IdempotencyToken` should use [`resource.UniqueId()`](https://godoc.org/github.com/hashicorp/terraform/helper/resource#UniqueId). The implementation includes a monotonic counter which is safer for concurrent operations than solutions such as `time.Now()`.
 - [ ] __Skips Exists Function__: Implementing a resource `Exists` function is extraneous as it often duplicates resource `Read` functionality. Ensure `d.SetId("")` is used to appropriately trigger resource recreation in the resource `Read` function.
 - [ ] __Skips id Attribute__: The `id` attribute is implicit for all Terraform resources and does not need to be defined in the schema.
 

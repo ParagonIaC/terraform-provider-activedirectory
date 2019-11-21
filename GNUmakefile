@@ -4,10 +4,7 @@ PKG_NAME=activedirectory
 default: install
 
 build:
-	go build
-	mv terraform-provider-activedirectory ~/.terraform.d/plugins/
-
-install: fmtcheck lint
+	fmtcheck lint
 	go install
 
 test: fmtcheck

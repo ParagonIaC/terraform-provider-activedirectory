@@ -94,7 +94,7 @@ issues of each type.
 2. The issue is verified and categorized.
    Categorization is done via GitHub labels.
 
-3. An initial triage process determines whether the issue is critical and must
+3. An initial process determines whether the issue is critical and must
     be addressed immediately, or can be left open for community discussion.
 
 4. The issue is addressed in a pull request or commit. The issue number will be

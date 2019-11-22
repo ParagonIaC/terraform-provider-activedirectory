@@ -1,5 +1,3 @@
-//organizationalunit
-
 package activedirectory
 
 import (
@@ -79,7 +77,7 @@ func (api *API) updateOUDescription(dn, description string) error {
 
 // deletes an existing ou object.
 func (api *API) deleteOU(dn string) error {
-	objects, err := api.searchObject("", dn, nil)
+	objects, err := api.searchObject("(objectclass=*)", dn, nil)
 	if err != nil {
 		return err
 	}

@@ -16,13 +16,31 @@ type Computer struct {
 }
 
 // returns computer object
-func (api *API) getComputer(dn string, attributes []string) (*Computer, error) {
+func (api *API) getComputer(name, baseOU string, attributes []string) (*Computer, error) {
+	dn := fmt.Sprintf("ou=%s,%s", name, baseOU)
+	log.Infof("Trying to get ad ou: %s", dn)
+
 	attributes = append(attributes, "cn")
 
-	// trying to get computer object
-	ret, err := api.getObject(dn, attributes)
+	// filter
+	filter := fmt.Sprintf("(&(objectclass=computer)(name=%s))", name)
+
+	// trying to get ou object
+	ret, err := api.searchObject(filter, baseOU, attributes)
+	log.Infof("return: %s", ret)
 	if err != nil {
+		if err, ok := err.(*ldap.Error); ok {
+			if err.ResultCode == 32 {
+				log.Info("AD computer object could not be found", dn)
+				return nil, nil
+			}
+		}
+		log.Errorf("Error will searching for ad computer object %s: %s:", dn, err)
 		return nil, err
+	}
+
+	if len(ret) != 1 {
+		return nil, nil
 	}
 
 	if ret == nil {
@@ -30,9 +48,9 @@ func (api *API) getComputer(dn string, attributes []string) (*Computer, error) {
 	}
 
 	return &Computer{
-		name:       strings.Join(ret.attributes["cn"], ""),
-		dn:         ret.dn,
-		attributes: ret.attributes,
+		name:       strings.Join(ret[0].attributes["cn"], ""),
+		dn:         strings.ToLower(ret[0].dn),
+		attributes: ret[0].attributes,
 	}, nil
 }
 
@@ -54,6 +72,20 @@ func (api *API) createComputer(dn, cn string, attributes map[string][]string) er
 // moves an existing computer object to a new ou
 func (api *API) updateComputerOU(dn, cn, ou string) error {
 	log.Infof("Moving computer object %s to ou %s", dn, ou)
+
+	base := dn[(strings.Index(strings.ToLower(dn), "dc=")):]
+
+	tmp, err := api.getComputer(cn, base, nil)
+	if err != nil {
+		return err
+	}
+
+	if tmp != nil {
+		if tmp.dn != fmt.Sprintf("cn=%s,%s", cn, ou) {
+			log.Infof("Computer object is already in the target ou")
+			return nil
+		}
+	}
 
 	// specific uid of the computer
 	computerUID := fmt.Sprintf("cn=%s", cn)

@@ -20,16 +20,17 @@ type APIInterface interface {
 	updateObject(dn string, classes []string, added map[string][]string, changed map[string][]string, removed map[string][]string) error
 
 	// comupter objects
-	getComputer(dn string, attributes []string) (*Computer, error)
+	getComputer(name, baseOU string, attributes []string) (*Computer, error)
 	createComputer(dn, cn string, attributes map[string][]string) error
 	updateComputerOU(dn, cn, ou string) error
 	updateComputerAttributes(dn string, added map[string][]string, changed map[string][]string, removed map[string][]string) error
 	deleteComputer(dn string) error
 
 	// ou objects
-	getOU(dn string) (*OU, error)
+	getOU(name, baseOU string) (*OU, error)
 	createOU(dn, cn, description string) error
 	moveOU(dn, cn, ou string) error
+	updateOUName(dn, name string) error
 	updateOUDescription(dn, description string) error
 	deleteOU(dn string) error
 }

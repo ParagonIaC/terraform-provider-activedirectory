@@ -32,6 +32,9 @@ func resourceADOUObject() *schema.Resource {
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return strings.EqualFold(old, new)
 				},
+				StateFunc: func(val interface{}) string {
+					return strings.ToLower(val.(string))
+				},
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -45,7 +48,7 @@ func resourceADOUObject() *schema.Resource {
 // resourceADOUObjectCreate is 'create' part of terraform CRUD functions for AD provider
 func resourceADOUObjectCreate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(APIInterface)
-	dn := fmt.Sprintf("ou=%s,%s", d.Get("name").(string), d.Get("base_ou").(string))
+	dn := strings.ToLower(fmt.Sprintf("OU=%s,%s", d.Get("name").(string), d.Get("base_ou").(string)))
 
 	if err := api.createOU(dn, d.Get("name").(string), d.Get("description").(string)); err != nil {
 		log.Errorf("Error while creating ad ou object %s: %s", dn, err)
@@ -59,9 +62,9 @@ func resourceADOUObjectCreate(d *schema.ResourceData, meta interface{}) error {
 // resourceADOUObjectRead is 'read' part of terraform CRUD functions for AD provider
 func resourceADOUObjectRead(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(APIInterface)
-	dn := fmt.Sprintf("ou=%s,%s", d.Get("name").(string), d.Get("base_ou").(string))
+	dn := strings.ToLower(fmt.Sprintf("OU=%s,%s", d.Get("name").(string), d.Get("base_ou").(string)))
 
-	ou, err := api.getOU(dn)
+	ou, err := api.getOU(d.Get("name").(string), d.Get("base_ou").(string))
 	if err != nil {
 		log.Errorf("Error while reading ad ou object %s: %s", dn, err)
 		return err
@@ -81,7 +84,7 @@ func resourceADOUObjectRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	baseOU := strings.Replace(ou.dn, "ou="+ou.name, "", 1)
+	baseOU := strings.ToLower(ou.dn[(len(ou.name) + 1 + 3):]) // remove 'ou=' and ','
 	if err := d.Set("base_ou", baseOU); err != nil {
 		log.Errorf("Error while setting ad object's %s base_ou: %s", dn, err)
 		return err
@@ -98,19 +101,16 @@ func resourceADOUObjectRead(d *schema.ResourceData, meta interface{}) error {
 // resourceADOUObjectUpdate is 'update' part of terraform CRUD functions for ad provider
 func resourceADOUObjectUpdate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(APIInterface)
-	dn := fmt.Sprintf("ou=%s,%s", d.Get("name").(string), d.Get("base_ou").(string))
 
-	// check ou
-	if d.HasChange("base_ou") {
-		old, _ := d.GetChange("base_ou")
-		dn = fmt.Sprintf("ou=%s,%s", d.Get("name").(string), old.(string))
-	}
+	oldOU, newOU := d.GetChange("base_ou")
+	oldName, newName := d.GetChange("name")
 
 	// let's try to update in parts
 	d.Partial(true)
 
 	// check description
 	if d.HasChange("description") {
+		dn := strings.ToLower(fmt.Sprintf("OU=%s,%s", oldName.(string), oldOU.(string)))
 		if err := api.updateOUDescription(dn, d.Get("description").(string)); err != nil {
 			return err
 		}
@@ -118,16 +118,26 @@ func resourceADOUObjectUpdate(d *schema.ResourceData, meta interface{}) error {
 		d.SetPartial("description")
 	}
 
+	// check description
+	if d.HasChange("name") {
+		dn := strings.ToLower(fmt.Sprintf("OU=%s,%s", oldName.(string), oldOU.(string)))
+		if err := api.updateOUName(dn, newName.(string)); err != nil {
+			return err
+		}
+
+		d.SetPartial("name")
+	}
+
 	// check ou
 	if d.HasChange("base_ou") {
-		// update ou
-		if err := api.moveOU(dn, d.Get("name").(string), d.Get("base_ou").(string)); err != nil {
+		dn := strings.ToLower(fmt.Sprintf("OU=%s,%s", newName.(string), oldOU.(string)))
+		if err := api.moveOU(dn, newName.(string), d.Get("base_ou").(string)); err != nil {
 			return err
 		}
 	}
 
 	d.Partial(false)
-	d.SetId(dn)
+	d.SetId(strings.ToLower(fmt.Sprintf("OU=%s,%s", newName.(string), newOU.(string))))
 
 	// read current ad data to avoid drift
 	return resourceADOUObjectRead(d, meta)
@@ -138,7 +148,7 @@ func resourceADOUObjectDelete(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(APIInterface)
 
 	// creating computer dn
-	dn := fmt.Sprintf("ou=%s,%s", d.Get("name").(string), d.Get("base_ou").(string))
+	dn := strings.ToLower(fmt.Sprintf("OU=%s,%s", d.Get("name").(string), d.Get("base_ou").(string)))
 
 	// call ad to delete the ou object, no error means that object was deleted successfully
 	return api.deleteOU(dn)

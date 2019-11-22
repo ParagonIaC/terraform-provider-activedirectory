@@ -16,13 +16,31 @@ type OU struct {
 }
 
 // returns ou object
-func (api *API) getOU(dn string) (*OU, error) {
+func (api *API) getOU(name, baseOU string) (*OU, error) {
+	dn := fmt.Sprintf("ou=%s,%s", name, baseOU)
+	log.Infof("Trying to get ad ou: %s", dn)
+
 	attributes := []string{"name", "ou", "description"}
 
+	// filter
+	filter := fmt.Sprintf("(&(objectclass=organizationalUnit)(name=%s))", name)
+
 	// trying to get ou object
-	ret, err := api.getObject(dn, attributes)
+	ret, err := api.searchObject(filter, baseOU, attributes)
+	log.Infof("return: %s", ret)
 	if err != nil {
+		if err, ok := err.(*ldap.Error); ok {
+			if err.ResultCode == 32 {
+				log.Info("AD ou object could not be found", dn)
+				return nil, nil
+			}
+		}
+		log.Errorf("Error will searching for ad ou object %s: %s:", dn, err)
 		return nil, err
+	}
+
+	if len(ret) != 1 {
+		return nil, nil
 	}
 
 	if ret == nil {
@@ -30,9 +48,9 @@ func (api *API) getOU(dn string) (*OU, error) {
 	}
 
 	return &OU{
-		name:        strings.Join(ret.attributes["name"], ""),
-		dn:          ret.dn,
-		description: strings.Join(ret.attributes["description"], ""),
+		name:        strings.Join(ret[0].attributes["name"], ""),
+		dn:          ret[0].dn,
+		description: strings.Join(ret[0].attributes["description"], ""),
 	}, nil
 }
 
@@ -67,12 +85,21 @@ func (api *API) moveOU(dn, cn, ou string) error {
 	return nil
 }
 
-// updates the attributes of an existing ou object
+// updates the description of an existing ou object
 func (api *API) updateOUDescription(dn, description string) error {
 	log.Infof("updating description of ou object %s", dn)
 	return api.updateObject(dn, nil, nil, map[string][]string{
-		"description": []string{description},
+		"description": {description},
 	}, nil)
+}
+
+// updates the name of an existing ou object
+func (api *API) updateOUName(dn, name string) error {
+	log.Infof("updating name of ou object %s", dn)
+
+	ou := strings.ToLower(dn[(len(name) + 3):]) // remove 'ou=' and ','
+
+	return api.moveOU(dn, name, ou)
 }
 
 // deletes an existing ou object.

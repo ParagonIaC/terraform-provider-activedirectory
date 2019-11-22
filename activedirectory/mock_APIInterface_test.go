@@ -37,6 +37,20 @@ func (_m *MockAPIInterface) createComputer(dn string, cn string, attributes map[
 	return r0
 }
 
+// createOU provides a mock function with given fields: dn, cn, description
+func (_m *MockAPIInterface) createOU(dn string, cn string, description string) error {
+	ret := _m.Called(dn, cn, description)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(dn, cn, description)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // createObject provides a mock function with given fields: dn, class, attributes
 func (_m *MockAPIInterface) createObject(dn string, class []string, attributes map[string][]string) error {
 	ret := _m.Called(dn, class, attributes)
@@ -53,6 +67,20 @@ func (_m *MockAPIInterface) createObject(dn string, class []string, attributes m
 
 // deleteComputer provides a mock function with given fields: dn
 func (_m *MockAPIInterface) deleteComputer(dn string) error {
+	ret := _m.Called(dn)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(dn)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// deleteOU provides a mock function with given fields: dn
+func (_m *MockAPIInterface) deleteOU(dn string) error {
 	ret := _m.Called(dn)
 
 	var r0 error
@@ -102,6 +130,29 @@ func (_m *MockAPIInterface) getComputer(dn string, attributes []string) (*Comput
 	return r0, r1
 }
 
+// getOU provides a mock function with given fields: dn
+func (_m *MockAPIInterface) getOU(dn string) (*OU, error) {
+	ret := _m.Called(dn)
+
+	var r0 *OU
+	if rf, ok := ret.Get(0).(func(string) *OU); ok {
+		r0 = rf(dn)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*OU)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(dn)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // getObject provides a mock function with given fields: dn, attributes
 func (_m *MockAPIInterface) getObject(dn string, attributes []string) (*Object, error) {
 	ret := _m.Called(dn, attributes)
@@ -123,6 +174,20 @@ func (_m *MockAPIInterface) getObject(dn string, attributes []string) (*Object, 
 	}
 
 	return r0, r1
+}
+
+// moveOU provides a mock function with given fields: dn, cn, ou
+func (_m *MockAPIInterface) moveOU(dn string, cn string, ou string) error {
+	ret := _m.Called(dn, cn, ou)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(dn, cn, ou)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // searchObject provides a mock function with given fields: filter, baseDN, attributes
@@ -169,6 +234,20 @@ func (_m *MockAPIInterface) updateComputerOU(dn string, cn string, ou string) er
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
 		r0 = rf(dn, cn, ou)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// updateOUDescription provides a mock function with given fields: dn, description
+func (_m *MockAPIInterface) updateOUDescription(dn string, description string) error {
+	ret := _m.Called(dn, description)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(dn, description)
 	} else {
 		r0 = ret.Error(0)
 	}

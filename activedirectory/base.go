@@ -25,6 +25,13 @@ type APIInterface interface {
 	updateComputerOU(dn, cn, ou string) error
 	updateComputerAttributes(dn string, added map[string][]string, changed map[string][]string, removed map[string][]string) error
 	deleteComputer(dn string) error
+
+	// ou objects
+	getOU(dn string) (*OU, error)
+	createOU(dn, cn, description string) error
+	moveOU(dn, cn, ou string) error
+	updateOUDescription(dn, description string) error
+	deleteOU(dn string) error
 }
 
 // API is the basic struct which should implement the interface

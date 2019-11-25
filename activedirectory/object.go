@@ -39,6 +39,10 @@ func (api *API) searchObject(filter, baseDN string, attributes []string) ([]*Obj
 		return nil, err
 	}
 
+	if result == nil {
+		return nil, nil
+	}
+
 	objects := make([]*Object, len(result.Entries))
 	for i, entry := range result.Entries {
 		objects[i] = &Object{

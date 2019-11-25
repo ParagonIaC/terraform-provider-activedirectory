@@ -3,8 +3,7 @@ PKG_NAME=activedirectory
 
 default: install
 
-build:
-	fmtcheck lint
+build: fmtcheck lint
 	go install
 
 test: fmtcheck

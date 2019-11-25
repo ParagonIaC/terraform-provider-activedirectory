@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -89,7 +90,7 @@ func testAccCheckADComputerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		computer, err := api.getComputer(rs.Primary.ID, nil)
+		computer, err := api.getComputer(rs.Primary.Attributes["name"], rs.Primary.Attributes["ou"], nil)
 		if err != nil {
 			return err
 		}
@@ -114,7 +115,7 @@ func testAccCheckADComputerExists(resourceName string, computer *Computer) resou
 		}
 
 		api := testAccProvider.Meta().(*API)
-		_computer, err := api.getComputer(rs.Primary.ID, []string{"description"})
+		_computer, err := api.getComputer(rs.Primary.Attributes["name"], rs.Primary.Attributes["ou"], []string{"description"})
 
 		if err != nil {
 			return err
@@ -196,7 +197,7 @@ func TestResourceADComputerObject(t *testing.T) {
 
 func TestResourceADComputerObjectCreate(t *testing.T) {
 	name := "Test1"
-	ou := "ou=test1,ou=org"
+	ou := "ou=test1,dc=org"
 	description := "terraform"
 
 	testComputer := &Computer{
@@ -217,7 +218,7 @@ func TestResourceADComputerObjectCreate(t *testing.T) {
 	t.Run("resourceADComputerObjectCreate - should return nil when everything is good", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("createComputer", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
+		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceADComputerObjectCreate(resourceLocalData, api)
@@ -238,19 +239,19 @@ func TestResourceADComputerObjectCreate(t *testing.T) {
 	t.Run("resourceADComputerObjectCreate - id should be set to dn", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("createComputer", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
+		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceADComputerObjectCreate(resourceLocalData, api)
 
 		assert.NoError(t, err)
-		assert.Equal(t, resourceLocalData.Id(), testComputer.dn)
+		assert.True(t, strings.EqualFold(resourceLocalData.Id(), testComputer.dn))
 	})
 }
 
 func TestResourceADComputerObjectRead(t *testing.T) {
 	name := "Test2"
-	ou := "ou=test2,ou=org"
+	ou := "ou=test2,dc=org"
 	description := "terraform"
 
 	testComputer := &Computer{
@@ -270,7 +271,7 @@ func TestResourceADComputerObjectRead(t *testing.T) {
 
 	t.Run("resourceADComputerObjectRead - should return nil when everything is good", func(t *testing.T) {
 		api := new(MockAPIInterface)
-		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
+		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceADComputerObjectRead(resourceLocalData, api)
@@ -280,7 +281,7 @@ func TestResourceADComputerObjectRead(t *testing.T) {
 
 	t.Run("resourceADComputerObjectRead - should return error when reading failed", func(t *testing.T) {
 		api := new(MockAPIInterface)
-		api.On("getComputer", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("error"))
+		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceADComputerObjectRead(resourceLocalData, api)
@@ -290,7 +291,7 @@ func TestResourceADComputerObjectRead(t *testing.T) {
 
 	t.Run("resourceADComputerObjectRead - should return nil and id set to nil when not found", func(t *testing.T) {
 		api := new(MockAPIInterface)
-		api.On("getComputer", mock.Anything, mock.Anything).Return(nil, nil)
+		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceADComputerObjectRead(resourceLocalData, api)
@@ -301,7 +302,7 @@ func TestResourceADComputerObjectRead(t *testing.T) {
 
 	t.Run("resourceADComputerObjectRead - should set 'description' accordingly", func(t *testing.T) {
 		api := new(MockAPIInterface)
-		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
+		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceADComputerObjectRead(resourceLocalData, api)
@@ -313,7 +314,7 @@ func TestResourceADComputerObjectRead(t *testing.T) {
 
 func TestResourceADComputerObjectUpdate(t *testing.T) {
 	name := "Test3"
-	ou := "ou=test3,ou=org"
+	ou := "ou=test3,dc=org"
 	description := "terraform"
 
 	testComputer := &Computer{
@@ -333,7 +334,7 @@ func TestResourceADComputerObjectUpdate(t *testing.T) {
 
 	t.Run("resourceADComputerObjectUpdate - should return nil when everything is okay", func(t *testing.T) {
 		api := new(MockAPIInterface)
-		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
+		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
 		api.On("updateComputerAttributes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		api.On("updateComputerOU", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
@@ -345,7 +346,7 @@ func TestResourceADComputerObjectUpdate(t *testing.T) {
 
 	t.Run("resourceADComputerObjectUpdate - should return error when updateComputerAttributes fails", func(t *testing.T) {
 		api := new(MockAPIInterface)
-		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
+		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
 		api.On("updateComputerAttributes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
@@ -356,7 +357,7 @@ func TestResourceADComputerObjectUpdate(t *testing.T) {
 
 	t.Run("resourceADComputerObjectUpdate - should return error when updateComputerOU fails", func(t *testing.T) {
 		api := new(MockAPIInterface)
-		api.On("getComputer", mock.Anything, mock.Anything).Return(testComputer, nil)
+		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
 		api.On("updateComputerAttributes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		api.On("updateComputerOU", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 

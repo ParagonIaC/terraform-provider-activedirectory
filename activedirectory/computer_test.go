@@ -3,6 +3,7 @@ package activedirectory
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,7 +31,7 @@ func TestGetComputer(t *testing.T) {
 
 		api := &API{client: mockClient}
 
-		computer, err := api.getComputer("", nil)
+		computer, err := api.getComputer("", "", nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, computer)
@@ -42,7 +43,7 @@ func TestGetComputer(t *testing.T) {
 
 		api := &API{client: mockClient}
 
-		computer, err := api.getComputer("", nil)
+		computer, err := api.getComputer("", "", nil)
 
 		assert.NoError(t, err)
 		assert.Nil(t, computer)
@@ -54,7 +55,7 @@ func TestGetComputer(t *testing.T) {
 
 		api := &API{client: mockClient}
 
-		computer, err := api.getComputer("", []string{"cn"})
+		computer, err := api.getComputer("", "", []string{"cn"})
 
 		assert.NoError(t, err)
 		assert.NotNil(t, computer)
@@ -71,11 +72,11 @@ func TestGetComputer(t *testing.T) {
 
 		api := &API{client: mockClient}
 
-		computer, err := api.getComputer("DN0", nil)
+		computer, err := api.getComputer("DN0", "", nil)
 		assert.NoError(t, err)
 		assert.NotNil(t, computer)
 
-		assert.Equal(t, computer.dn, "DN0")
+		assert.Equal(t, computer.dn, strings.ToLower("DN0"))
 	})
 }
 
@@ -121,32 +122,35 @@ func TestCreateComputer(t *testing.T) {
 func TestUpdateComputerOU(t *testing.T) {
 	t.Run("updateComputerOU - should forward error from ldap.Client.ModifyDN", func(t *testing.T) {
 		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, nil)
 		mockClient.On("ModifyDN", mock.Anything).Return(fmt.Errorf("error"))
 
 		api := &API{client: mockClient}
-		err := api.updateComputerOU("", "", "")
+		err := api.updateComputerOU("dc=test,dc=org", "", "")
 		assert.Error(t, err)
 	})
 
 	t.Run("updateComputerOU - should return nil when computer ou was updated", func(t *testing.T) {
 		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, nil)
 		mockClient.On("ModifyDN", mock.Anything).Return(nil)
 
 		api := &API{client: mockClient}
-		err := api.updateComputerOU("", "", "")
+		err := api.updateComputerOU("dc=test,dc=org", "", "")
 		assert.NoError(t, err)
 	})
 
 	t.Run("updateComputerOU - should call ModifyDN with correct ModifyDNrequest", func(t *testing.T) {
-		_dn := "dn=\\test,ou=computer,ou=org"
+		_dn := "dn=\\test,ou=computer,dc=org"
 		_cn := "test"
-		_ou := "ou=sub,ou=computer,ou=org"
+		_ou := "ou=sub,ou=computer,dc=org"
 
 		matchFunc := func(sr *ldap.ModifyDNRequest) bool {
 			return sr.DN == _dn && sr.NewSuperior == _ou && sr.NewRDN == fmt.Sprintf("cn=%s", _cn)
 		}
 
 		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, nil)
 		mockClient.On("ModifyDN", mock.MatchedBy(matchFunc)).Return(nil)
 
 		api := &API{client: mockClient}

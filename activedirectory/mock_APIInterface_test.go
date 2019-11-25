@@ -107,13 +107,13 @@ func (_m *MockAPIInterface) deleteObject(dn string) error {
 	return r0
 }
 
-// getComputer provides a mock function with given fields: dn, attributes
-func (_m *MockAPIInterface) getComputer(dn string, attributes []string) (*Computer, error) {
-	ret := _m.Called(dn, attributes)
+// getComputer provides a mock function with given fields: name, baseOU, attributes
+func (_m *MockAPIInterface) getComputer(name string, baseOU string, attributes []string) (*Computer, error) {
+	ret := _m.Called(name, baseOU, attributes)
 
 	var r0 *Computer
-	if rf, ok := ret.Get(0).(func(string, []string) *Computer); ok {
-		r0 = rf(dn, attributes)
+	if rf, ok := ret.Get(0).(func(string, string, []string) *Computer); ok {
+		r0 = rf(name, baseOU, attributes)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*Computer)
@@ -121,8 +121,8 @@ func (_m *MockAPIInterface) getComputer(dn string, attributes []string) (*Comput
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
-		r1 = rf(dn, attributes)
+	if rf, ok := ret.Get(1).(func(string, string, []string) error); ok {
+		r1 = rf(name, baseOU, attributes)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -130,13 +130,13 @@ func (_m *MockAPIInterface) getComputer(dn string, attributes []string) (*Comput
 	return r0, r1
 }
 
-// getOU provides a mock function with given fields: dn
-func (_m *MockAPIInterface) getOU(dn string) (*OU, error) {
-	ret := _m.Called(dn)
+// getOU provides a mock function with given fields: name, baseOU
+func (_m *MockAPIInterface) getOU(name string, baseOU string) (*OU, error) {
+	ret := _m.Called(name, baseOU)
 
 	var r0 *OU
-	if rf, ok := ret.Get(0).(func(string) *OU); ok {
-		r0 = rf(dn)
+	if rf, ok := ret.Get(0).(func(string, string) *OU); ok {
+		r0 = rf(name, baseOU)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*OU)
@@ -144,8 +144,8 @@ func (_m *MockAPIInterface) getOU(dn string) (*OU, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(dn)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(name, baseOU)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -248,6 +248,20 @@ func (_m *MockAPIInterface) updateOUDescription(dn string, description string) e
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(dn, description)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// updateOUName provides a mock function with given fields: dn, name
+func (_m *MockAPIInterface) updateOUName(dn string, name string) error {
+	ret := _m.Called(dn, name)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(dn, name)
 	} else {
 		r0 = ret.Error(0)
 	}

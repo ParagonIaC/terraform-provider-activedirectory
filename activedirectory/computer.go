@@ -27,7 +27,6 @@ func (api *API) getComputer(name, baseOU string, attributes []string) (*Computer
 
 	// trying to get ou object
 	ret, err := api.searchObject(filter, baseOU, attributes)
-	log.Infof("return: %s", ret)
 	if err != nil {
 		if err, ok := err.(*ldap.Error); ok {
 			if err.ResultCode == 32 {

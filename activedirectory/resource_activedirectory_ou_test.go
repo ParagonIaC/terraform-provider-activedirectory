@@ -3,6 +3,7 @@ package activedirectory
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -90,7 +91,7 @@ func testAccCheckADOUDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_ou, err := api.getOU(rs.Primary.ID)
+		_ou, err := api.getOU(rs.Primary.Attributes["name"], rs.Primary.Attributes["base_ou"])
 		if err != nil {
 			return err
 		}
@@ -115,7 +116,7 @@ func testAccCheckADOUExists(resourceName string, _ou *OU) resource.TestCheckFunc
 		}
 
 		api := testAccProvider.Meta().(*API)
-		tmpOU, err := api.getOU(rs.Primary.ID)
+		tmpOU, err := api.getOU(rs.Primary.Attributes["name"], rs.Primary.Attributes["base_ou"])
 
 		if err != nil {
 			return err
@@ -237,13 +238,14 @@ func TestResourceADOUObjectCreate(t *testing.T) {
 	t.Run("resourceADOUObjectCreate - id should be set to dn", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("createOU", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		api.On("updateOUName", mock.Anything, mock.Anything).Return(nil)
 		api.On("getOU", mock.Anything, mock.Anything).Return(testOU, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceADOUObjectCreate(resourceLocalData, api)
 
 		assert.NoError(t, err)
-		assert.Equal(t, resourceLocalData.Id(), testOU.dn)
+		assert.True(t, strings.EqualFold(resourceLocalData.Id(), testOU.dn))
 	})
 }
 
@@ -330,6 +332,7 @@ func TestResourceADOUObjectUpdate(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getOU", mock.Anything, mock.Anything).Return(testOU, nil)
 		api.On("updateOUDescription", mock.Anything, mock.Anything).Return(nil)
+		api.On("updateOUName", mock.Anything, mock.Anything).Return(nil)
 		api.On("moveOU", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
@@ -352,6 +355,7 @@ func TestResourceADOUObjectUpdate(t *testing.T) {
 	t.Run("resourceADOUObjectUpdate - should return error when moveOU fails", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getOU", mock.Anything, mock.Anything).Return(testOU, nil)
+		api.On("updateOUName", mock.Anything, mock.Anything).Return(nil)
 		api.On("updateOUDescription", mock.Anything, mock.Anything).Return(nil)
 		api.On("moveOU", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 

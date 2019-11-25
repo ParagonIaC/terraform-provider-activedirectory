@@ -21,7 +21,7 @@ func TestGetOU(t *testing.T) {
 
 		api := &API{client: mockClient}
 
-		ou, err := api.getOU("")
+		ou, err := api.getOU("", "")
 
 		assert.Error(t, err)
 		assert.Nil(t, ou)
@@ -33,7 +33,7 @@ func TestGetOU(t *testing.T) {
 
 		api := &API{client: mockClient}
 
-		ou, err := api.getOU("")
+		ou, err := api.getOU("", "")
 
 		assert.NoError(t, err)
 		assert.Nil(t, ou)
@@ -45,7 +45,7 @@ func TestGetOU(t *testing.T) {
 
 		api := &API{client: mockClient}
 
-		ou, err := api.getOU("")
+		ou, err := api.getOU("", "")
 
 		assert.NoError(t, err)
 		assert.NotNil(t, ou)

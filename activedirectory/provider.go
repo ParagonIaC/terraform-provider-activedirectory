@@ -44,6 +44,7 @@ func Provider() terraform.ResourceProvider {
 			"password": {
 				Type:        schema.TypeString,
 				Required:    true,
+				Sensitive:   true,
 				DefaultFunc: schema.EnvDefaultFunc("AD_PASSWORD", nil),
 				Description: "Password to authenticate the user.",
 			},

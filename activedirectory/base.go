@@ -37,23 +37,23 @@ type APIInterface interface {
 
 // API is the basic struct which should implement the interface
 type API struct {
-	adHost       string
-	adPort       int
-	useTLS       bool
-	bindUser     string
-	bindPassword string
-	client       ldap.Client
+	host     string
+	port     int
+	useTLS   bool
+	user     string
+	password string
+	client   ldap.Client
 }
 
 // connects to an Active Directory server
 func (api *API) connect() error {
-	log.Infof("Connecting to %s:%d with bind user %s.", api.adHost, api.adPort, api.bindUser)
+	log.Infof("Connecting to %s:%d with bind user %s.", api.host, api.port, api.user)
 
-	if api.adHost == "" {
+	if api.host == "" {
 		return fmt.Errorf("connect - no ad host specified")
 	}
 
-	client, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.adHost, api.adPort))
+	client, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.host, api.port))
 	if err != nil {
 		return fmt.Errorf("connect - failed to connect: %s", err)
 	}
@@ -65,18 +65,18 @@ func (api *API) connect() error {
 		}
 	}
 
-	if api.bindUser == "" {
+	if api.user == "" {
 		return fmt.Errorf("connect - no bind user specified")
 	}
 
-	log.Infof("Authenticating user %s.", api.bindUser)
-	if err = client.Bind(api.bindUser, api.bindPassword); err != nil {
+	log.Infof("Authenticating user %s.", api.user)
+	if err = client.Bind(api.user, api.password); err != nil {
 		client.Close()
 		return fmt.Errorf("connect - authentication failed: %s", err)
 	}
 
 	api.client = client
 
-	log.Infof("Connected successfully to %s:%d as user %s", api.adHost, api.adPort, api.bindUser)
+	log.Infof("Connected successfully to %s:%d as user %s", api.host, api.port, api.user)
 	return nil
 }

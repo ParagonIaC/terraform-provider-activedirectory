@@ -47,59 +47,58 @@ func resourceADOUObject() *schema.Resource {
 
 // resourceADOUObjectCreate is 'create' part of terraform CRUD functions for AD provider
 func resourceADOUObjectCreate(d *schema.ResourceData, meta interface{}) error {
-	api := meta.(APIInterface)
-	dn := strings.ToLower(fmt.Sprintf("OU=%s,%s", d.Get("name").(string), d.Get("base_ou").(string)))
+	log.Infof("Creating AD OU object")
 
-	if err := api.createOU(dn, d.Get("name").(string), d.Get("description").(string)); err != nil {
-		log.Errorf("Error while creating ad ou object %s: %s", dn, err)
-		return err
+	api := meta.(APIInterface)
+
+	if err := api.createOU(d.Get("name").(string), d.Get("base_ou").(string), d.Get("description").(string)); err != nil {
+		return fmt.Errorf("resourceADOUObjectCreate - %s", err)
 	}
 
-	d.SetId(dn)
+	d.SetId(strings.ToLower(fmt.Sprintf("ou=%s,%s", d.Get("name").(string), d.Get("base_ou").(string))))
 	return resourceADOUObjectRead(d, meta)
 }
 
 // resourceADOUObjectRead is 'read' part of terraform CRUD functions for AD provider
 func resourceADOUObjectRead(d *schema.ResourceData, meta interface{}) error {
+	log.Infof("Reading AD OU object")
+
 	api := meta.(APIInterface)
-	dn := strings.ToLower(fmt.Sprintf("OU=%s,%s", d.Get("name").(string), d.Get("base_ou").(string)))
 
 	ou, err := api.getOU(d.Get("name").(string), d.Get("base_ou").(string))
 	if err != nil {
-		log.Errorf("Error while reading ad ou object %s: %s", dn, err)
-		return err
+		return fmt.Errorf("resourceADOUObjectRead - %s", err)
 	}
 
 	if ou == nil {
-		log.Debugf("Computer object %s no longer exists", dn)
+		log.Infof("OU object %s no longer exists under %s", d.Get("name").(string), d.Get("base_ou").(string))
 
 		d.SetId("")
 		return nil
 	}
 
-	d.SetId(dn)
-
 	if err := d.Set("name", ou.name); err != nil {
-		log.Errorf("Error while setting ad object's %s name: %s", dn, err)
-		return err
+		return fmt.Errorf("resourceADOUObjectRead - failed to set ou name to %s: %s", ou.name, err)
 	}
 
-	baseOU := strings.ToLower(ou.dn[(len(ou.name) + 1 + 3):]) // remove 'ou=' and ','
+	baseOU := strings.ToLower(ou.dn[(len(ou.name) + 1 + 3):]) // remove 'ou=' and ',' and ou name
 	if err := d.Set("base_ou", baseOU); err != nil {
-		log.Errorf("Error while setting ad object's %s base_ou: %s", dn, err)
-		return err
+		return fmt.Errorf("resourceADOUObjectRead - failed to set ou base_ou to %s: %s", baseOU, err)
 	}
 
 	if err := d.Set("description", ou.description); err != nil {
-		log.Errorf("Error while setting ad object's %s description: %s", dn, err)
-		return err
+		return fmt.Errorf("resourceADOUObjectRead - failed to set ou description to %s: %s", ou.description, err)
 	}
+
+	d.SetId(strings.ToLower(ou.dn))
 
 	return nil
 }
 
 // resourceADOUObjectUpdate is 'update' part of terraform CRUD functions for ad provider
 func resourceADOUObjectUpdate(d *schema.ResourceData, meta interface{}) error {
+	log.Infof("Updating AD OU object")
+
 	api := meta.(APIInterface)
 
 	oldOU, newOU := d.GetChange("base_ou")
@@ -110,9 +109,8 @@ func resourceADOUObjectUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	// check description
 	if d.HasChange("description") {
-		dn := strings.ToLower(fmt.Sprintf("OU=%s,%s", oldName.(string), oldOU.(string)))
-		if err := api.updateOUDescription(dn, d.Get("description").(string)); err != nil {
-			return err
+		if err := api.updateOUDescription(oldName.(string), oldOU.(string), d.Get("description").(string)); err != nil {
+			return fmt.Errorf("resourceADOUObjectUpdate - %s", err)
 		}
 
 		d.SetPartial("description")
@@ -120,9 +118,8 @@ func resourceADOUObjectUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	// check description
 	if d.HasChange("name") {
-		dn := strings.ToLower(fmt.Sprintf("OU=%s,%s", oldName.(string), oldOU.(string)))
-		if err := api.updateOUName(dn, newName.(string)); err != nil {
-			return err
+		if err := api.updateOUName(oldName.(string), oldOU.(string), newName.(string)); err != nil {
+			return fmt.Errorf("resourceADOUObjectUpdate - %s", err)
 		}
 
 		d.SetPartial("name")
@@ -130,14 +127,13 @@ func resourceADOUObjectUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	// check ou
 	if d.HasChange("base_ou") {
-		dn := strings.ToLower(fmt.Sprintf("OU=%s,%s", newName.(string), oldOU.(string)))
-		if err := api.moveOU(dn, newName.(string), d.Get("base_ou").(string)); err != nil {
-			return err
+		if err := api.moveOU(newName.(string), oldOU.(string), d.Get("base_ou").(string)); err != nil {
+			return fmt.Errorf("resourceADOUObjectUpdate - %s", err)
 		}
 	}
 
 	d.Partial(false)
-	d.SetId(strings.ToLower(fmt.Sprintf("OU=%s,%s", newName.(string), newOU.(string))))
+	d.SetId(strings.ToLower(fmt.Sprintf("ou=%s,%s", newName.(string), newOU.(string))))
 
 	// read current ad data to avoid drift
 	return resourceADOUObjectRead(d, meta)
@@ -145,11 +141,10 @@ func resourceADOUObjectUpdate(d *schema.ResourceData, meta interface{}) error {
 
 // resourceADOUObjectDelete is 'delete' part of terraform CRUD functions for ad provider
 func resourceADOUObjectDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Infof("Deleting AD OU object")
+
 	api := meta.(APIInterface)
 
-	// creating computer dn
-	dn := strings.ToLower(fmt.Sprintf("OU=%s,%s", d.Get("name").(string), d.Get("base_ou").(string)))
-
 	// call ad to delete the ou object, no error means that object was deleted successfully
-	return api.deleteOU(dn)
+	return api.deleteOU(strings.ToLower(fmt.Sprintf("ou=%s,%s", d.Get("name").(string), d.Get("base_ou").(string))))
 }

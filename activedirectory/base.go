@@ -12,6 +12,7 @@ import (
 // APIInterface is the basic interface for AD API
 type APIInterface interface {
 	connect() error
+	getDomainDN() string
 
 	// generic objects
 	searchObject(filter, baseDN string, attributes []string) ([]*Object, error)
@@ -21,18 +22,18 @@ type APIInterface interface {
 	updateObject(dn string, classes []string, added, changed, removed map[string][]string) error
 
 	// comupter objects
-	getComputer(name, baseOU string, attributes []string) (*Computer, error)
-	createComputer(dn, cn string, attributes map[string][]string) error
-	updateComputerOU(dn, cn, ou string) error
-	updateComputerAttributes(dn string, added, changed, removed map[string][]string) error
-	deleteComputer(dn string) error
+	getComputer(name string) (*Computer, error)
+	createComputer(cn, ou, description string) error
+	updateComputerOU(cn, ou, newOU string) error
+	updateComputerDescription(cn, ou, description string) error
+	deleteComputer(cn, ou string) error
 
 	// ou objects
 	getOU(name, baseOU string) (*OU, error)
 	createOU(dn, cn, description string) error
-	moveOU(dn, cn, ou string) error
-	updateOUName(dn, name string) error
-	updateOUDescription(dn, description string) error
+	moveOU(cn, ou, newOU string) error
+	updateOUName(name, baseOU, newName string) error
+	updateOUDescription(cn, ou, description string) error
 	deleteOU(dn string) error
 }
 

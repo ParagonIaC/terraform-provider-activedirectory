@@ -53,7 +53,7 @@ func resourceADComputerObjectCreate(d *schema.ResourceData, meta interface{}) er
 	api := meta.(APIInterface)
 
 	if err := api.createComputer(d.Get("name").(string), d.Get("ou").(string), d.Get("description").(string)); err != nil {
-		return err
+		return fmt.Errorf("resourceADComputerObjectCreate - %s", err)
 	}
 
 	d.SetId(strings.ToLower(fmt.Sprintf("cn=%s,%s", d.Get("name").(string), d.Get("ou").(string))))
@@ -68,7 +68,7 @@ func resourceADComputerObjectRead(d *schema.ResourceData, meta interface{}) erro
 
 	computer, err := api.getComputer(d.Get("name").(string))
 	if err != nil {
-		return err
+		return fmt.Errorf("resourceADComputerObjectRead - %s", err)
 	}
 
 	if computer == nil {
@@ -102,7 +102,7 @@ func resourceADComputerObjectUpdate(d *schema.ResourceData, meta interface{}) er
 	// check description
 	if d.HasChange("description") {
 		if err := api.updateComputerDescription(d.Get("name").(string), d.Get("ou").(string), d.Get("description").(string)); err != nil {
-			return err
+			return fmt.Errorf("resourceADComputerObjectUpdate - %s", err)
 		}
 
 		d.SetPartial("description")
@@ -111,7 +111,7 @@ func resourceADComputerObjectUpdate(d *schema.ResourceData, meta interface{}) er
 	// check ou
 	if d.HasChange("ou") {
 		if err := api.updateComputerOU(d.Get("name").(string), oldOU.(string), newOU.(string)); err != nil {
-			return err
+			return fmt.Errorf("resourceADComputerObjectUpdate - %s", err)
 		}
 	}
 

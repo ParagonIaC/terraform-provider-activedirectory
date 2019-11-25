@@ -46,28 +46,37 @@ type API struct {
 }
 
 // connects to an Active Directory server
-func (api *API) connect() (err error) {
-	log.Debugf("Trying AD connection with user %s to server %s", api.bindUser, api.adHost)
+func (api *API) connect() error {
+	log.Infof("Connecting to %s:%d with bind user %s.", api.adHost, api.adPort, api.bindUser)
 
-	api.client, err = ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.adHost, api.adPort))
+	if api.adHost == "" {
+		return fmt.Errorf("connect - no ad host specified")
+	}
+
+	client, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.adHost, api.adPort))
 	if err != nil {
-		log.Errorf("Connection to %s:%d failed: %s", api.adHost, api.adPort, err)
-		return err
+		return fmt.Errorf("connect - failed to connect: %s", err)
 	}
 
 	if api.useTLS {
-		if err = api.client.StartTLS(&tls.Config{InsecureSkipVerify: false}); err != nil {
-			api.client = nil
-			return err
+		log.Info("Configuring client to use secure connection.")
+		if err = client.StartTLS(&tls.Config{InsecureSkipVerify: false}); err != nil {
+			return fmt.Errorf("connect - failed to use secure connection: %s", err)
 		}
 	}
 
-	if err = api.client.Bind(api.bindUser, api.bindPassword); err != nil {
-		log.Errorf("Authentication failed: %s", err)
-		api.client.Close()
-		return err
+	if api.bindUser == "" {
+		return fmt.Errorf("connect - no bind user specified")
 	}
 
-	log.Debugf("AD connection successful for user: %s", api.bindUser)
+	log.Infof("Authenticating user %s.", api.bindUser)
+	if err = client.Bind(api.bindUser, api.bindPassword); err != nil {
+		client.Close()
+		return fmt.Errorf("connect - authentication failed: %s", err)
+	}
+
+	api.client = client
+
+	log.Infof("Connected successfully to %s:%d as user %s", api.adHost, api.adPort, api.bindUser)
 	return nil
 }

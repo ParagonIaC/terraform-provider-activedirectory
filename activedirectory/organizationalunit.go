@@ -28,7 +28,7 @@ func (api *API) getOU(name, baseOU string) (*OU, error) {
 	if err != nil {
 		if err, ok := err.(*ldap.Error); ok {
 			if err.ResultCode == 32 {
-				log.Info("OU object %s could not be found in %s", name, baseOU)
+				log.Infof("OU object %s could not be found in %s", name, baseOU)
 				return nil, nil
 			}
 		}
@@ -103,7 +103,7 @@ func (api *API) moveOU(cn, baseOU, newOU string) error {
 	// move ou object to new ou
 	req := ldap.NewModifyDNRequest(fmt.Sprintf("ou=%s,%s", cn, baseOU), UID, true, newOU)
 	if err := api.client.ModifyDN(req); err != nil {
-		return fmt.Errorf("moveOU - failed to move ou: ", err)
+		return fmt.Errorf("moveOU - failed to move ou: %s", err)
 	}
 
 	log.Infof("OU moved.")

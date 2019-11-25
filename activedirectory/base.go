@@ -90,5 +90,5 @@ func (api *API) connect() error {
 
 func (api *API) getDomainDN() string {
 	tmp := strings.Split(api.domain, ".")
-	return fmt.Sprintf("dc=%s", strings.Join(tmp, ",dc="))
+	return strings.ToLower(fmt.Sprintf("dc=%s", strings.Join(tmp, ",dc=")))
 }

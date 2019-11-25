@@ -38,7 +38,7 @@ func (api *API) searchObject(filter, baseDN string, attributes []string) ([]*Obj
 	if err != nil {
 		if err, ok := err.(*ldap.Error); ok {
 			if err.ResultCode == 32 {
-				log.Info("No object found with filter %s", filter)
+				log.Infof("No object found with filter %s", filter)
 				return nil, nil
 			}
 		}

@@ -27,7 +27,7 @@ func (api *API) getComputer(name string) (*Computer, error) {
 	// trying to get ou object
 	ret, err := api.searchObject(filter, domain, attributes)
 	if err != nil {
-		return nil, fmt.Errorf("getComputer - searching for computer object %s failed: ", name, err)
+		return nil, fmt.Errorf("getComputer - searching for computer object %s failed: %s", name, err)
 	}
 
 	if ret == nil || len(ret) == 0 {
@@ -98,7 +98,7 @@ func (api *API) updateComputerOU(cn, ou, newOU string) error {
 	// move computer object to new ou
 	req := ldap.NewModifyDNRequest(fmt.Sprintf("cn=%s,%s", cn, ou), computerUID, true, newOU)
 	if err := api.client.ModifyDN(req); err != nil {
-		return fmt.Errorf("updateComputerOU - failed to move computer object", err)
+		return fmt.Errorf("updateComputerOU - failed to move computer object: %s", err)
 	}
 
 	log.Info("Object moved successfully")
@@ -109,7 +109,7 @@ func (api *API) updateComputerOU(cn, ou, newOU string) error {
 func (api *API) updateComputerDescription(cn, ou, description string) error {
 	log.Infof("Updating description of computer object %s", cn)
 	return api.updateObject(fmt.Sprintf("cn=%s,%s", cn, ou), nil, nil, map[string][]string{
-		"description": []string{description},
+		"description": {description},
 	}, nil)
 }
 

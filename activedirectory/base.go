@@ -3,6 +3,7 @@ package activedirectory
 import (
 	"crypto/tls"
 	"fmt"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/ldap.v3"
@@ -84,4 +85,9 @@ func (api *API) connect() error {
 
 	log.Infof("Connected successfully to %s:%d.", api.host, api.port)
 	return nil
+}
+
+func (api *API) getDomainDN() string {
+	tmp := strings.Split(api.domain, ".")
+	return fmt.Sprintf("dc=%s", strings.Join(tmp, ",dc="))
 }

@@ -27,18 +27,15 @@ func (api *API) getComputer(name string) (*Computer, error) {
 	// trying to get ou object
 	ret, err := api.searchObject(filter, domain, attributes)
 	if err != nil {
-		if err, ok := err.(*ldap.Error); ok {
-			if err.ResultCode == 32 {
-				log.Infof("AD computer object %s could not be found", name)
-				return nil, nil
-			}
-		}
-		return nil, fmt.Errorf("getComputer - searching for ad computer object %s failed: ", name, err)
+		return nil, fmt.Errorf("getComputer - searching for computer object %s failed: ", name, err)
 	}
 
-	// nothing found
-	if ret == nil || len(ret) != 1 {
+	if len(ret) == 0 {
 		return nil, nil
+	}
+
+	if len(ret) > 1 {
+		return nil, fmt.Errorf("getComputer - more than one computer object with the same name found")
 	}
 
 	return &Computer{
@@ -111,15 +108,6 @@ func (api *API) updateComputerOU(cn, ou, newOU string) error {
 // updates the description of an existing computer object
 func (api *API) updateComputerDescription(cn, ou, description string) error {
 	log.Infof("Updating description of computer object %s", cn)
-	tmp, err := api.getComputer(cn)
-	if err != nil {
-		return fmt.Errorf("updateComputerDescription - talking to active directory failed: %s", err)
-	}
-
-	if tmp == nil {
-		return fmt.Errorf("updateComputerDescription - computer object %s does not exist", cn)
-	}
-
 	return api.updateObject(fmt.Sprintf("cn=%s,%s", cn, ou), nil, nil, map[string][]string{
 		"description": []string{description},
 	}, nil)
@@ -128,15 +116,5 @@ func (api *API) updateComputerDescription(cn, ou, description string) error {
 // deletes an existing computer object.
 func (api *API) deleteComputer(cn, ou string) error {
 	log.Infof("Deleting computer object %s", cn)
-	tmp, err := api.getComputer(cn)
-	if err != nil {
-		return fmt.Errorf("deleteComputer - talking to active directory failed: %s", err)
-	}
-
-	if tmp == nil {
-		log.Infof("Computer object %s is already deleted", cn)
-		return nil
-	}
-
 	return api.deleteObject(fmt.Sprintf("cn=%s,%s", cn, ou))
 }

@@ -17,13 +17,13 @@ type APIInterface interface {
 	getObject(dn string, attributes []string) (*Object, error)
 	createObject(dn string, class []string, attributes map[string][]string) error
 	deleteObject(dn string) error
-	updateObject(dn string, classes []string, added map[string][]string, changed map[string][]string, removed map[string][]string) error
+	updateObject(dn string, classes []string, added, changed, removed map[string][]string) error
 
 	// comupter objects
 	getComputer(name, baseOU string, attributes []string) (*Computer, error)
 	createComputer(dn, cn string, attributes map[string][]string) error
 	updateComputerOU(dn, cn, ou string) error
-	updateComputerAttributes(dn string, added map[string][]string, changed map[string][]string, removed map[string][]string) error
+	updateComputerAttributes(dn string, added, changed, removed map[string][]string) error
 	deleteComputer(dn string) error
 
 	// ou objects

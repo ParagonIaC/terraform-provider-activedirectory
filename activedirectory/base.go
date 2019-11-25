@@ -39,6 +39,7 @@ type APIInterface interface {
 type API struct {
 	host     string
 	port     int
+	domain   string
 	useTLS   bool
 	user     string
 	password string
@@ -47,10 +48,18 @@ type API struct {
 
 // connects to an Active Directory server
 func (api *API) connect() error {
-	log.Infof("Connecting to %s:%d with bind user %s.", api.host, api.port, api.user)
+	log.Infof("Connecting to %s:%d.", api.host, api.port)
 
 	if api.host == "" {
 		return fmt.Errorf("connect - no ad host specified")
+	}
+
+	if api.domain == "" {
+		return fmt.Errorf("connect - no ad domain specified")
+	}
+
+	if api.user == "" {
+		return fmt.Errorf("connect - no bind user specified")
 	}
 
 	client, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.host, api.port))
@@ -65,18 +74,14 @@ func (api *API) connect() error {
 		}
 	}
 
-	if api.user == "" {
-		return fmt.Errorf("connect - no bind user specified")
-	}
-
-	log.Infof("Authenticating user %s.", api.user)
-	if err = client.Bind(api.user, api.password); err != nil {
+	log.Infof("Authenticating user %s@%s.", api.user, api.domain)
+	if err = client.Bind(fmt.Sprintf("%s@%s", api.user, api.domain), api.password); err != nil {
 		client.Close()
 		return fmt.Errorf("connect - authentication failed: %s", err)
 	}
 
 	api.client = client
 
-	log.Infof("Connected successfully to %s:%d as user %s", api.host, api.port, api.user)
+	log.Infof("Connected successfully to %s:%d.", api.host, api.port)
 	return nil
 }

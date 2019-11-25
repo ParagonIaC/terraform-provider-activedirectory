@@ -79,16 +79,16 @@ func (api *API) createOU(name, baseOU, description string) error {
 }
 
 // moves an existing ou object to a new ou
-func (api *API) moveOU(cn, ou, newOU string) error {
-	log.Infof("Moving ou object %s from %s to %s.", cn, ou, newOU)
+func (api *API) moveOU(cn, baseOU, newOU string) error {
+	log.Infof("Moving ou object %s from %s to %s.", cn, baseOU, newOU)
 
-	tmp, err := api.getOU(cn, ou)
+	tmp, err := api.getOU(cn, baseOU)
 	if err != nil {
 		return fmt.Errorf("moveOU - talking to active directory failed: %s", err)
 	}
 
 	if tmp == nil {
-		return fmt.Errorf("moveOU - ou object %s does not exists under %s: %s", cn, ou, err)
+		return fmt.Errorf("moveOU - ou object %s does not exists under %s: %s", cn, baseOU, err)
 	}
 
 	// ou object is already in the target OU, nothing to do
@@ -101,7 +101,7 @@ func (api *API) moveOU(cn, ou, newOU string) error {
 	UID := fmt.Sprintf("ou=%s", cn)
 
 	// move ou object to new ou
-	req := ldap.NewModifyDNRequest(fmt.Sprintf("ou=%s,%s", cn, ou), UID, true, newOU)
+	req := ldap.NewModifyDNRequest(fmt.Sprintf("ou=%s,%s", cn, baseOU), UID, true, newOU)
 	if err := api.client.ModifyDN(req); err != nil {
 		return fmt.Errorf("moveOU - failed to move ou: ", err)
 	}
@@ -111,9 +111,9 @@ func (api *API) moveOU(cn, ou, newOU string) error {
 }
 
 // updates the description of an existing ou object
-func (api *API) updateOUDescription(cn, ou, description string) error {
-	log.Infof("Updating description of ou %s under %s", cn, ou)
-	return api.updateObject(fmt.Sprintf("ou=%s,%s", cn, ou), nil, nil, map[string][]string{
+func (api *API) updateOUDescription(cn, baseOU, description string) error {
+	log.Infof("Updating description of ou %s under %s", cn, baseOU)
+	return api.updateObject(fmt.Sprintf("ou=%s,%s", cn, baseOU), nil, nil, map[string][]string{
 		"description": {description},
 	}, nil)
 }

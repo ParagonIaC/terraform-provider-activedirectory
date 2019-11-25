@@ -30,10 +30,10 @@ type APIInterface interface {
 
 	// ou objects
 	getOU(name, baseOU string) (*OU, error)
-	createOU(dn, cn, description string) error
-	moveOU(cn, ou, newOU string) error
+	createOU(name, baseOU, description string) error
+	moveOU(cn, baseOU, newOU string) error
 	updateOUName(name, baseOU, newName string) error
-	updateOUDescription(cn, ou, description string) error
+	updateOUDescription(cn, baseOU, description string) error
 	deleteOU(dn string) error
 }
 

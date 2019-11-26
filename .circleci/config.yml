@@ -32,6 +32,11 @@ parameters:
     type: string
     default: "admin"
   
+  # this is needed because the test environment is ApacheDS (not MS AD)
+  ldap-user:
+    type: string
+    default: "uid=admin,ou=system"
+  
   ad-password:
     type: string
     default: "secret"
@@ -104,7 +109,7 @@ jobs:
           && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
       - run: dockerize -wait tcp://<< pipeline.parameters.ad-host >>:<< pipeline.parameters.ad-port >> -timeout 2m
       - run: ldapadd -v -h << pipeline.parameters.ad-host >>:<< pipeline.parameters.ad-port >> -c -x
-          -D << pipeline.parameters.ad-user >> -w << pipeline.parameters.ad-password >> -f ./tests/ad_test_data.ldif
+          -D << pipeline.parameters.ldap-user >> -w << pipeline.parameters.ad-password >> -f ./tests/ad_test_data.ldif
       - run: make testacc
 
   release:

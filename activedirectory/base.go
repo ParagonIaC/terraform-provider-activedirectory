@@ -3,6 +3,7 @@ package activedirectory
 import (
 	"crypto/tls"
 	"fmt"
+	"regexp"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -76,8 +77,13 @@ func (api *API) connect() error {
 		}
 	}
 
-	log.Infof("Authenticating user %s@%s.", api.user, api.domain)
-	if err = client.Bind(fmt.Sprintf("%s@%s", api.user, api.domain), api.password); err != nil {
+	user := api.user
+	if ok, e := regexp.MatchString(`.*,ou=.*`, api.user); e != nil || !ok {
+		user = fmt.Sprintf("%s@%s", api.user, api.domain)
+	}
+
+	log.Infof("Authenticating user %s.", user)
+	if err = client.Bind(user, api.password); err != nil {
 		client.Close()
 		return fmt.Errorf("connect - authentication failed: %s", err)
 	}

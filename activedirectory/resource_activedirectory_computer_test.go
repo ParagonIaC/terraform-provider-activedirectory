@@ -90,7 +90,7 @@ func testAccCheckADComputerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		computer, err := api.getComputer(rs.Primary.Attributes["name"], rs.Primary.Attributes["ou"], nil)
+		computer, err := api.getComputer(rs.Primary.Attributes["name"])
 		if err != nil {
 			return err
 		}
@@ -115,7 +115,7 @@ func testAccCheckADComputerExists(resourceName string, computer *Computer) resou
 		}
 
 		api := testAccProvider.Meta().(*API)
-		_computer, err := api.getComputer(rs.Primary.Attributes["name"], rs.Primary.Attributes["ou"], []string{"description"})
+		_computer, err := api.getComputer(rs.Primary.Attributes["name"])
 
 		if err != nil {
 			return err
@@ -132,7 +132,7 @@ func testAccCheckADComputerAttributes(computer *Computer, ou, name, description 
 			return fmt.Errorf("computer name not set correctly")
 		}
 
-		if !reflect.DeepEqual(computer.attributes["description"], []string{description}) {
+		if !reflect.DeepEqual(computer.description, description) {
 			return fmt.Errorf("computer description not set correctly")
 		}
 
@@ -196,16 +196,14 @@ func TestResourceADComputerObject(t *testing.T) {
 }
 
 func TestResourceADComputerObjectCreate(t *testing.T) {
-	name := "Test1"
-	ou := "ou=test1,dc=org"
-	description := "terraform"
+	name := getRandomString(10)
+	ou := getRandomOU(2, 2)
+	description := getRandomString(10)
 
 	testComputer := &Computer{
-		name: name,
-		dn:   fmt.Sprintf("cn=%s,%s", name, ou),
-		attributes: map[string][]string{
-			"description": {description},
-		},
+		name:        name,
+		dn:          fmt.Sprintf("cn=%s,%s", name, ou),
+		description: description,
 	}
 
 	resourceSchema := resourceADComputerObject().Schema
@@ -250,23 +248,21 @@ func TestResourceADComputerObjectCreate(t *testing.T) {
 }
 
 func TestResourceADComputerObjectRead(t *testing.T) {
-	name := "Test2"
-	ou := "ou=test2,dc=org"
-	description := "terraform"
+	name := getRandomString(10)
+	ou := getRandomOU(2, 2)
+	description := getRandomString(10)
 
 	testComputer := &Computer{
-		name: name,
-		dn:   fmt.Sprintf("cn=%s,%s", name, ou),
-		attributes: map[string][]string{
-			"description": {description},
-		},
+		name:        name,
+		dn:          fmt.Sprintf("cn=%s,%s", name, ou),
+		description: description,
 	}
 
 	resourceSchema := resourceADComputerObject().Schema
 	resourceDataMap := map[string]interface{}{
-		"name":        name,
-		"ou":          ou,
-		"description": "other desciption",
+		"name":        "",
+		"ou":          "",
+		"description": "",
 	}
 
 	t.Run("resourceADComputerObjectRead - should return nil when everything is good", func(t *testing.T) {
@@ -308,21 +304,19 @@ func TestResourceADComputerObjectRead(t *testing.T) {
 		err := resourceADComputerObjectRead(resourceLocalData, api)
 
 		assert.NoError(t, err)
-		assert.Equal(t, resourceLocalData.Get("description").(string), testComputer.attributes["description"][0])
+		assert.Equal(t, resourceLocalData.Get("description").(string), testComputer.description)
 	})
 }
 
 func TestResourceADComputerObjectUpdate(t *testing.T) {
-	name := "Test3"
-	ou := "ou=test3,dc=org"
-	description := "terraform"
+	name := getRandomString(10)
+	ou := getRandomOU(2, 2)
+	description := getRandomString(10)
 
 	testComputer := &Computer{
-		name: name,
-		dn:   fmt.Sprintf("cn=%s,%s", name, ou),
-		attributes: map[string][]string{
-			"description": {"updated"},
-		},
+		name:        name,
+		dn:          fmt.Sprintf("cn=%s,%s", name, ou),
+		description: getRandomString(10),
 	}
 
 	resourceSchema := resourceADComputerObject().Schema
@@ -335,7 +329,7 @@ func TestResourceADComputerObjectUpdate(t *testing.T) {
 	t.Run("resourceADComputerObjectUpdate - should return nil when everything is okay", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
-		api.On("updateComputerAttributes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		api.On("updateComputerDescription", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		api.On("updateComputerOU", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
@@ -344,10 +338,10 @@ func TestResourceADComputerObjectUpdate(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("resourceADComputerObjectUpdate - should return error when updateComputerAttributes fails", func(t *testing.T) {
+	t.Run("resourceADComputerObjectUpdate - should return error when updateComputerDescription fails", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
-		api.On("updateComputerAttributes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
+		api.On("updateComputerDescription", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceADComputerObjectUpdate(resourceLocalData, api)
@@ -358,7 +352,7 @@ func TestResourceADComputerObjectUpdate(t *testing.T) {
 	t.Run("resourceADComputerObjectUpdate - should return error when updateComputerOU fails", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
-		api.On("updateComputerAttributes", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		api.On("updateComputerDescription", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		api.On("updateComputerOU", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
@@ -369,16 +363,20 @@ func TestResourceADComputerObjectUpdate(t *testing.T) {
 }
 
 func TestResourceADComputerObjectDelete(t *testing.T) {
+	name := getRandomString(10)
+	ou := getRandomOU(2, 2)
+	description := getRandomString(10)
+
 	resourceSchema := resourceADComputerObject().Schema
 	resourceDataMap := map[string]interface{}{
-		"name":        "test",
-		"ou":          "ou",
-		"description": "other desciption",
+		"name":        name,
+		"ou":          ou,
+		"description": description,
 	}
 
 	t.Run("resourceADComputerObjectDelete - should forward errors from api.deleteComputer", func(t *testing.T) {
 		api := new(MockAPIInterface)
-		api.On("deleteComputer", mock.Anything).Return(fmt.Errorf("error"))
+		api.On("deleteComputer", mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceADComputerObjectDelete(resourceLocalData, api)
@@ -388,7 +386,7 @@ func TestResourceADComputerObjectDelete(t *testing.T) {
 
 	t.Run("resourceADComputerObjectDelete - should return nil if deleting was successful", func(t *testing.T) {
 		api := new(MockAPIInterface)
-		api.On("deleteComputer", mock.Anything).Return(nil)
+		api.On("deleteComputer", mock.Anything, mock.Anything).Return(nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceADComputerObjectDelete(resourceLocalData, api)

@@ -29,39 +29,44 @@ func TestProvider(t *testing.T) {
 		assert.NotNil(t, response)
 		assert.IsType(t, &schema.Provider{}, response)
 
-		assert.Equal(t, schema.TypeString, response.(*schema.Provider).Schema["ad_host"].Type)
-		assert.Equal(t, true, response.(*schema.Provider).Schema["ad_host"].Required)
+		assert.Equal(t, schema.TypeString, response.(*schema.Provider).Schema["host"].Type)
+		assert.Equal(t, true, response.(*schema.Provider).Schema["host"].Required)
 
-		assert.Equal(t, schema.TypeInt, response.(*schema.Provider).Schema["ad_port"].Type)
-		assert.Equal(t, false, response.(*schema.Provider).Schema["ad_port"].Required)
+		assert.Equal(t, schema.TypeString, response.(*schema.Provider).Schema["domain"].Type)
+		assert.Equal(t, true, response.(*schema.Provider).Schema["domain"].Required)
+
+		assert.Equal(t, schema.TypeInt, response.(*schema.Provider).Schema["port"].Type)
+		assert.Equal(t, false, response.(*schema.Provider).Schema["port"].Required)
 
 		assert.Equal(t, schema.TypeBool, response.(*schema.Provider).Schema["use_tls"].Type)
 		assert.Equal(t, false, response.(*schema.Provider).Schema["use_tls"].Required)
 
-		assert.Equal(t, schema.TypeString, response.(*schema.Provider).Schema["bind_user"].Type)
-		assert.Equal(t, true, response.(*schema.Provider).Schema["bind_user"].Required)
+		assert.Equal(t, schema.TypeString, response.(*schema.Provider).Schema["user"].Type)
+		assert.Equal(t, true, response.(*schema.Provider).Schema["user"].Required)
 
-		assert.Equal(t, schema.TypeString, response.(*schema.Provider).Schema["bind_password"].Type)
-		assert.Equal(t, true, response.(*schema.Provider).Schema["bind_password"].Required)
+		assert.Equal(t, schema.TypeString, response.(*schema.Provider).Schema["password"].Type)
+		assert.Equal(t, true, response.(*schema.Provider).Schema["password"].Required)
 	})
 }
 
 func TestProviderConfigure(t *testing.T) {
 	host := "127.0.0.1"
 	port := 11389
+	domain := "domain.org"
 
 	go getADServer(host, port)()
 	// give ad server time to start
 	time.Sleep(1000 * time.Millisecond)
 
-	t.Run("providerConfigure - Should return a api when connection to AD was successful", func(t *testing.T) {
+	t.Run("providerConfigure - Should return an api object when connection to AD was successful", func(t *testing.T) {
 		resourceSchema := Provider().(*schema.Provider).Schema
 		resourceDataMap := map[string]interface{}{
-			"bind_user":     "Tester",
-			"bind_password": "Password",
-			"use_tls":       false,
-			"ad_host":       host,
-			"ad_port":       port,
+			"user":     "Tester",
+			"password": "Password",
+			"use_tls":  false,
+			"host":     host,
+			"port":     port,
+			"domain":   domain,
 		}
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 
@@ -71,19 +76,21 @@ func TestProviderConfigure(t *testing.T) {
 		assert.IsType(t, &API{}, api)
 
 		assert.IsType(t, &ldap.Conn{}, api.(*API).client)
-		assert.Equal(t, host, api.(*API).adHost)
-		assert.Equal(t, port, api.(*API).adPort)
+		assert.Equal(t, host, api.(*API).host)
+		assert.Equal(t, port, api.(*API).port)
+		assert.Equal(t, domain, api.(*API).domain)
 		assert.Equal(t, false, api.(*API).useTLS)
 	})
 
 	t.Run("providerConfigure - Should return a error when connection to AD failed", func(t *testing.T) {
 		resourceSchema := Provider().(*schema.Provider).Schema
 		resourceDataMap := map[string]interface{}{
-			"bind_user":     "Tester",
-			"bind_password": "wrong",
-			"use_tls":       false,
-			"ad_host":       host,
-			"ad_port":       port,
+			"user":     "Tester",
+			"password": "wrong",
+			"use_tls":  false,
+			"host":     host,
+			"port":     port,
+			"domain":   domain,
 		}
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 

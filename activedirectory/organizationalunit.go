@@ -26,13 +26,6 @@ func (api *API) getOU(name, baseOU string) (*OU, error) {
 	// trying to get ou object
 	ret, err := api.searchObject(filter, baseOU, attributes)
 	if err != nil {
-		if err, ok := err.(*ldap.Error); ok {
-			if err.ResultCode == 32 {
-				log.Infof("OU object %s could not be found in %s", name, baseOU)
-				return nil, nil
-			}
-		}
-
 		return nil, fmt.Errorf("getOU - failed to search %s in %s: %s", name, baseOU, err)
 	}
 
@@ -121,7 +114,7 @@ func (api *API) updateOUDescription(cn, baseOU, description string) error {
 // updates the name of an existing ou object
 func (api *API) updateOUName(name, baseOU, newName string) error {
 	log.Infof("Updating name of ou %s under %s.", name, baseOU)
-	return api.moveOU(fmt.Sprintf("ou=%s,%s", name, baseOU), newName, baseOU)
+	return api.moveOU(name, newName, baseOU)
 }
 
 // deletes an existing ou object.

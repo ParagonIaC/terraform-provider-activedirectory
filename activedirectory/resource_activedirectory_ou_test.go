@@ -197,9 +197,9 @@ func TestResourceADOUObject(t *testing.T) {
 }
 
 func TestResourceADOUObjectCreate(t *testing.T) {
-	name := "Test1"
-	ou := "ou=test1,ou=org"
-	description := "terraform"
+	name := getRandomString(10)
+	ou := getRandomOU(2, 2)
+	description := getRandomString(10)
 
 	testOU := &OU{
 		name:        name,
@@ -250,9 +250,9 @@ func TestResourceADOUObjectCreate(t *testing.T) {
 }
 
 func TestResourceADOUObjectRead(t *testing.T) {
-	name := "Test2"
-	ou := "ou=test2,ou=org"
-	description := "terraform"
+	name := getRandomString(10)
+	ou := getRandomOU(2, 2)
+	description := getRandomString(10)
 
 	testOU := &OU{
 		name:        name,
@@ -262,9 +262,9 @@ func TestResourceADOUObjectRead(t *testing.T) {
 
 	resourceSchema := resourceADOUObject().Schema
 	resourceDataMap := map[string]interface{}{
-		"name":        name,
-		"base_ou":     ou,
-		"description": "other desciption",
+		"name":        "",
+		"base_ou":     "",
+		"description": "",
 	}
 
 	t.Run("resourceADOUObjectRead - should return nil when everything is good", func(t *testing.T) {
@@ -311,14 +311,14 @@ func TestResourceADOUObjectRead(t *testing.T) {
 }
 
 func TestResourceADOUObjectUpdate(t *testing.T) {
-	name := "Test3"
-	ou := "ou=test3,ou=org"
-	description := "terraform"
+	name := getRandomString(10)
+	ou := getRandomOU(2, 2)
+	description := getRandomString(10)
 
 	testOU := &OU{
 		name:        name,
 		dn:          fmt.Sprintf("ou=%s,%s", name, ou),
-		description: "updated",
+		description: getRandomString(20),
 	}
 
 	resourceSchema := resourceADOUObject().Schema
@@ -331,8 +331,8 @@ func TestResourceADOUObjectUpdate(t *testing.T) {
 	t.Run("resourceADOUObjectUpdate - should return nil when everything is okay", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getOU", mock.Anything, mock.Anything).Return(testOU, nil)
-		api.On("updateOUDescription", mock.Anything, mock.Anything).Return(nil)
-		api.On("updateOUName", mock.Anything, mock.Anything).Return(nil)
+		api.On("updateOUDescription", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		api.On("updateOUName", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		api.On("moveOU", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
@@ -344,7 +344,7 @@ func TestResourceADOUObjectUpdate(t *testing.T) {
 	t.Run("resourceADOUObjectUpdate - should return error when updateOUDescription fails", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getOU", mock.Anything, mock.Anything).Return(testOU, nil)
-		api.On("updateOUDescription", mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
+		api.On("updateOUDescription", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 		err := resourceADOUObjectUpdate(resourceLocalData, api)
@@ -355,8 +355,8 @@ func TestResourceADOUObjectUpdate(t *testing.T) {
 	t.Run("resourceADOUObjectUpdate - should return error when moveOU fails", func(t *testing.T) {
 		api := new(MockAPIInterface)
 		api.On("getOU", mock.Anything, mock.Anything).Return(testOU, nil)
-		api.On("updateOUName", mock.Anything, mock.Anything).Return(nil)
-		api.On("updateOUDescription", mock.Anything, mock.Anything).Return(nil)
+		api.On("updateOUName", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		api.On("updateOUDescription", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		api.On("moveOU", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
@@ -367,11 +367,15 @@ func TestResourceADOUObjectUpdate(t *testing.T) {
 }
 
 func TestResourceADOUObjectDelete(t *testing.T) {
+	name := getRandomString(10)
+	ou := getRandomOU(2, 2)
+	description := getRandomString(10)
+
 	resourceSchema := resourceADOUObject().Schema
 	resourceDataMap := map[string]interface{}{
-		"name":        "test",
-		"base_ou":     "base_ou",
-		"description": "other desciption",
+		"name":        name,
+		"base_ou":     ou,
+		"description": description,
 	}
 
 	t.Run("resourceADOUObjectDelete - should forward errors from api.deleteOU", func(t *testing.T) {

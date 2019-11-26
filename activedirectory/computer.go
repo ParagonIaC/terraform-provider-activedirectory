@@ -2,6 +2,7 @@ package activedirectory
 
 import (
 	"fmt"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/ldap.v3"
@@ -87,7 +88,7 @@ func (api *API) updateComputerOU(cn, ou, newOU string) error {
 	}
 
 	// computer object is already in the target OU, nothing to do
-	if tmp.dn == fmt.Sprintf("cn=%s,%s", cn, newOU) {
+	if strings.EqualFold(tmp.dn, fmt.Sprintf("cn=%s,%s", cn, newOU)) {
 		log.Infof("Computer object is already in the target ou")
 		return nil
 	}

@@ -127,7 +127,7 @@ func resourceADOUObjectUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	// check ou
 	if d.HasChange("base_ou") {
-		if err := api.moveOU(newName.(string), oldOU.(string), d.Get("base_ou").(string)); err != nil {
+		if err := api.moveOU(newName.(string), oldOU.(string), newOU.(string)); err != nil {
 			return fmt.Errorf("resourceADOUObjectUpdate - %s", err)
 		}
 	}

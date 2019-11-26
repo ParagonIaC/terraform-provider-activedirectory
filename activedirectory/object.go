@@ -71,7 +71,7 @@ func (api *API) getObject(dn string, attributes []string) (*Object, error) {
 		return nil, fmt.Errorf("getObject - failed to get object %s: %s", dn, err)
 	}
 
-	if len(objects) == 0 {
+	if objects == nil || len(objects) == 0 {
 		return nil, nil
 	}
 
@@ -91,7 +91,7 @@ func (api *API) createObject(dn string, classes []string, attributes map[string]
 		return fmt.Errorf("createObject - talking to active directory failed: %s", err)
 	}
 
-	// there is already a object with the same dn
+	// there is already an object with the same dn
 	if tmp != nil {
 		return fmt.Errorf("createObject - object %s already exists", dn)
 	}

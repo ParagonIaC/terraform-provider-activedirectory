@@ -13,7 +13,7 @@ type adHandler struct {
 
 func (h adHandler) Bind(bindDN, bindPw string, conn net.Conn) (ldap.LDAPResultCode, error) {
 	log.Errorf(bindDN, bindPw)
-	if bindDN == "Tester" && bindPw == "Password" {
+	if bindDN == "Tester@domain.org" && bindPw == "Password" {
 		return ldap.LDAPResultSuccess, nil
 	}
 	return ldap.LDAPResultUnavailable, fmt.Errorf("authentication failed")

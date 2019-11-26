@@ -16,9 +16,9 @@ import (
 
 // acceptance tests
 func TestAccADComputer_basic(t *testing.T) {
-	ou := os.Getenv("AD_COMPUTER_TEST_BASE_OU")
-	name := "test-acc-computer"
-	description := "terraform"
+	ou := os.Getenv("AD_TEST_BASE_OU")
+	name := fmt.Sprintf("test-acc-computer-%s", getRandomString(5))
+	description := getRandomString(10)
 
 	var computer Computer
 
@@ -43,9 +43,9 @@ func TestAccADComputer_basic(t *testing.T) {
 }
 
 func TestAccADComputer_update(t *testing.T) {
-	ou := os.Getenv("AD_COMPUTER_TEST_BASE_OU")
-	name := "test-acc-computer"
-	description := "terraform"
+	ou := os.Getenv("AD_TEST_BASE_OU")
+	name := fmt.Sprintf("test-acc-computer-%s", getRandomString(5))
+	description := getRandomString(10)
 
 	updatedOU := "ou=update," + ou
 	updatedDescription := description + "_updated"
@@ -151,17 +151,20 @@ func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv("AD_PORT"); v == "" {
 		t.Fatal("AD_PORT must be set for acceptance tests")
 	}
+	if v := os.Getenv("AD_DOMAIN"); v == "" {
+		t.Fatal("AD_DOMAIN must be set for acceptance tests")
+	}
 	if v := os.Getenv("AD_USE_TLS"); v == "" {
 		t.Fatal("AD_USE_TLS must be set for acceptance tests")
 	}
-	if v := os.Getenv("AD_BIND_USER"); v == "" {
-		t.Fatal("AD_BIND_USER must be set for acceptance tests")
+	if v := os.Getenv("AD_USER"); v == "" {
+		t.Fatal("AD_USER must be set for acceptance tests")
 	}
-	if v := os.Getenv("AD_BIND_PASSWORD"); v == "" {
-		t.Fatal("AD_BIND_PASSWORD must be set for acceptance tests")
+	if v := os.Getenv("AD_PASSWORD"); v == "" {
+		t.Fatal("AD_PASSWORD must be set for acceptance tests")
 	}
-	if v := os.Getenv("AD_COMPUTER_TEST_BASE_OU"); v == "" {
-		t.Fatal("AD_COMPUTER_TEST_BASE_OU must be set for acceptance tests")
+	if v := os.Getenv("AD_TEST_BASE_OU"); v == "" {
+		t.Fatal("AD_TEST_BASE_OU must be set for acceptance tests")
 	}
 }
 

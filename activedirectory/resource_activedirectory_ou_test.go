@@ -16,10 +16,10 @@ import (
 // acceptance tests
 func TestAccADOU_basic(t *testing.T) {
 	ou := os.Getenv("AD_TEST_BASE_OU")
-	name := "test-acc-ou"
-	description := "terraform"
+	name := fmt.Sprintf("test-acc-ou-%s", getRandomString(5))
+	description := getRandomString(10)
 
-	var _ou OU
+	var ouObject OU
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckOU(t) },
@@ -29,8 +29,8 @@ func TestAccADOU_basic(t *testing.T) {
 			{
 				Config: testAccResourceADOUTestData(ou, name, description),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckADOUExists("activedirectory_ou.test", &_ou),
-					testAccCheckADOUAttributes(&_ou, ou, name, description),
+					testAccCheckADOUExists("activedirectory_ou.test", &ouObject),
+					testAccCheckADOUAttributes(&ouObject, ou, name, description),
 					resource.TestCheckResourceAttr("activedirectory_ou.test", "base_ou", ou),
 					resource.TestCheckResourceAttr("activedirectory_ou.test", "name", name),
 					resource.TestCheckResourceAttr("activedirectory_ou.test", "description", description),
@@ -43,14 +43,14 @@ func TestAccADOU_basic(t *testing.T) {
 
 func TestAccADOU_update(t *testing.T) {
 	ou := os.Getenv("AD_TEST_BASE_OU")
-	name := "test-acc-ou"
-	description := "terraform"
+	name := fmt.Sprintf("test-acc-ou-%s", getRandomString(5))
+	description := getRandomString(10)
 
 	updatedName := "update-" + name
 	updatedOU := "ou=update," + ou
 	updatedDescription := description + "_updated"
 
-	var _ou OU
+	var ouObject OU
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckOU(t) },
@@ -60,8 +60,8 @@ func TestAccADOU_update(t *testing.T) {
 			{
 				Config: testAccResourceADOUTestData(ou, name, description),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckADOUExists("activedirectory_ou.test", &_ou),
-					testAccCheckADOUAttributes(&_ou, ou, name, description),
+					testAccCheckADOUExists("activedirectory_ou.test", &ouObject),
+					testAccCheckADOUAttributes(&ouObject, ou, name, description),
 					resource.TestCheckResourceAttr("activedirectory_ou.test", "base_ou", ou),
 					resource.TestCheckResourceAttr("activedirectory_ou.test", "name", name),
 					resource.TestCheckResourceAttr("activedirectory_ou.test", "description", description),
@@ -71,8 +71,8 @@ func TestAccADOU_update(t *testing.T) {
 			{
 				Config: testAccResourceADOUTestData(updatedOU, updatedName, updatedDescription),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckADOUExists("activedirectory_ou.test", &_ou),
-					testAccCheckADOUAttributes(&_ou, updatedOU, updatedName, updatedDescription),
+					testAccCheckADOUExists("activedirectory_ou.test", &ouObject),
+					testAccCheckADOUAttributes(&ouObject, updatedOU, updatedName, updatedDescription),
 					resource.TestCheckResourceAttr("activedirectory_ou.test", "base_ou", updatedOU),
 					resource.TestCheckResourceAttr("activedirectory_ou.test", "name", updatedName),
 					resource.TestCheckResourceAttr("activedirectory_ou.test", "description", updatedDescription),
@@ -91,12 +91,12 @@ func testAccCheckADOUDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_ou, err := api.getOU(rs.Primary.Attributes["name"], rs.Primary.Attributes["base_ou"])
+		ou, err := api.getOU(rs.Primary.Attributes["name"], rs.Primary.Attributes["base_ou"])
 		if err != nil {
 			return err
 		}
 
-		if _ou != nil {
+		if ou != nil {
 			return fmt.Errorf("ad ou (%s) still exists", rs.Primary.ID)
 		}
 	}
@@ -104,7 +104,7 @@ func testAccCheckADOUDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckADOUExists(resourceName string, _ou *OU) resource.TestCheckFunc {
+func testAccCheckADOUExists(resourceName string, ou *OU) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -112,7 +112,7 @@ func testAccCheckADOUExists(resourceName string, _ou *OU) resource.TestCheckFunc
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("AD _ou ID is not set")
+			return fmt.Errorf("AD ou ID is not set")
 		}
 
 		api := testAccProvider.Meta().(*API)
@@ -122,22 +122,22 @@ func testAccCheckADOUExists(resourceName string, _ou *OU) resource.TestCheckFunc
 			return err
 		}
 
-		*_ou = *tmpOU
+		*ou = *tmpOU
 		return nil
 	}
 }
 
-func testAccCheckADOUAttributes(_ou *OU, ou, name, description string) resource.TestCheckFunc {
+func testAccCheckADOUAttributes(ouObject *OU, ou, name, description string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if _ou.name != name {
+		if ouObject.name != name {
 			return fmt.Errorf("ou name not set correctly")
 		}
 
-		if _ou.description != description {
+		if ouObject.description != description {
 			return fmt.Errorf("ou description not set correctly")
 		}
 
-		if _ou.dn != fmt.Sprintf("ou=%s,%s", name, ou) {
+		if ouObject.dn != fmt.Sprintf("ou=%s,%s", name, ou) {
 			return fmt.Errorf("ou dn not set correctly")
 		}
 
@@ -152,14 +152,17 @@ func testAccPreCheckOU(t *testing.T) {
 	if v := os.Getenv("AD_PORT"); v == "" {
 		t.Fatal("AD_PORT must be set for acceptance tests")
 	}
+	if v := os.Getenv("AD_DOMAIN"); v == "" {
+		t.Fatal("AD_DOMAIN must be set for acceptance tests")
+	}
 	if v := os.Getenv("AD_USE_TLS"); v == "" {
 		t.Fatal("AD_USE_TLS must be set for acceptance tests")
 	}
-	if v := os.Getenv("AD_BIND_USER"); v == "" {
-		t.Fatal("AD_BIND_USER must be set for acceptance tests")
+	if v := os.Getenv("AD_USER"); v == "" {
+		t.Fatal("AD_USER must be set for acceptance tests")
 	}
-	if v := os.Getenv("AD_BIND_PASSWORD"); v == "" {
-		t.Fatal("AD_BIND_PASSWORD must be set for acceptance tests")
+	if v := os.Getenv("AD_PASSWORD"); v == "" {
+		t.Fatal("AD_PASSWORD must be set for acceptance tests")
 	}
 	if v := os.Getenv("AD_TEST_BASE_OU"); v == "" {
 		t.Fatal("AD_TEST_BASE_OU must be set for acceptance tests")

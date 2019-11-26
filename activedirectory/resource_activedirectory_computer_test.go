@@ -3,7 +3,6 @@ package activedirectory
 import (
 	"fmt"
 	"os"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -16,8 +15,8 @@ import (
 
 // acceptance tests
 func TestAccADComputer_basic(t *testing.T) {
-	ou := os.Getenv("AD_TEST_BASE_OU")
-	name := fmt.Sprintf("test-acc-computer-%s", getRandomString(5))
+	ou := strings.ToLower(os.Getenv("AD_TEST_BASE_OU"))
+	name := strings.ToLower(fmt.Sprintf("testacc-%s", getRandomString(3)))
 	description := getRandomString(10)
 
 	var computer Computer
@@ -43,8 +42,8 @@ func TestAccADComputer_basic(t *testing.T) {
 }
 
 func TestAccADComputer_update(t *testing.T) {
-	ou := os.Getenv("AD_TEST_BASE_OU")
-	name := fmt.Sprintf("test-acc-computer-%s", getRandomString(5))
+	ou := strings.ToLower(os.Getenv("AD_TEST_BASE_OU"))
+	name := strings.ToLower(fmt.Sprintf("testacc-%s", getRandomString(3)))
 	description := getRandomString(10)
 
 	updatedOU := "ou=update," + ou
@@ -128,16 +127,16 @@ func testAccCheckADComputerExists(resourceName string, computer *Computer) resou
 
 func testAccCheckADComputerAttributes(computer *Computer, ou, name, description string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if computer.name != name {
-			return fmt.Errorf("computer name not set correctly")
+		if !strings.EqualFold(computer.name, name) {
+			return fmt.Errorf("computer name not set correctly: %s, %s", computer.name, name)
 		}
 
-		if !reflect.DeepEqual(computer.description, description) {
-			return fmt.Errorf("computer description not set correctly")
+		if !strings.EqualFold(computer.description, description) {
+			return fmt.Errorf("computer description not set correctly: %s, %s", computer.description, description)
 		}
 
-		if computer.dn != fmt.Sprintf("cn=%s,%s", name, ou) {
-			return fmt.Errorf("computer dn not set correctly")
+		if !strings.EqualFold(computer.dn, fmt.Sprintf("cn=%s,%s", name, ou)) {
+			return fmt.Errorf("computer dn not set correctly: %s, %s, %s", computer.dn, name, ou)
 		}
 
 		return nil

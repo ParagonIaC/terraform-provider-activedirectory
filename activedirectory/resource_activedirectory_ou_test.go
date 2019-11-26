@@ -15,8 +15,8 @@ import (
 
 // acceptance tests
 func TestAccADOU_basic(t *testing.T) {
-	ou := os.Getenv("AD_TEST_BASE_OU")
-	name := fmt.Sprintf("test-acc-ou-%s", getRandomString(5))
+	ou := strings.ToLower(os.Getenv("AD_TEST_BASE_OU"))
+	name := strings.ToLower(fmt.Sprintf("testacc_%s", getRandomString(3)))
 	description := getRandomString(10)
 
 	var ouObject OU
@@ -42,11 +42,11 @@ func TestAccADOU_basic(t *testing.T) {
 }
 
 func TestAccADOU_update(t *testing.T) {
-	ou := os.Getenv("AD_TEST_BASE_OU")
-	name := fmt.Sprintf("test-acc-ou-%s", getRandomString(5))
+	ou := strings.ToLower(os.Getenv("AD_TEST_BASE_OU"))
+	name := strings.ToLower(fmt.Sprintf("testacc_%s", getRandomString(3)))
 	description := getRandomString(10)
 
-	updatedName := "update-" + name
+	updatedName := fmt.Sprintf("update_%s", name)
 	updatedOU := "ou=update," + ou
 	updatedDescription := description + "_updated"
 
@@ -129,16 +129,16 @@ func testAccCheckADOUExists(resourceName string, ou *OU) resource.TestCheckFunc 
 
 func testAccCheckADOUAttributes(ouObject *OU, ou, name, description string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if ouObject.name != name {
-			return fmt.Errorf("ou name not set correctly")
+		if !strings.EqualFold(ouObject.name, name) {
+			return fmt.Errorf("ou name not set correctly: %s, %s", ouObject.name, name)
 		}
 
-		if ouObject.description != description {
-			return fmt.Errorf("ou description not set correctly")
+		if !strings.EqualFold(ouObject.description, description) {
+			return fmt.Errorf("ou description not set correctly: %s, %s", ouObject.description, description)
 		}
 
-		if ouObject.dn != fmt.Sprintf("ou=%s,%s", name, ou) {
-			return fmt.Errorf("ou dn not set correctly")
+		if !strings.EqualFold(ouObject.dn, fmt.Sprintf("ou=%s,%s", name, ou)) {
+			return fmt.Errorf("ou dn not set correctly: %s, %s, %s", ouObject.dn, name, ou)
 		}
 
 		return nil

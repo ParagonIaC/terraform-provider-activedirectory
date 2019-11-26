@@ -53,7 +53,7 @@ func resourceADComputerObjectCreate(d *schema.ResourceData, meta interface{}) er
 	api := meta.(APIInterface)
 
 	if err := api.createComputer(d.Get("name").(string), d.Get("ou").(string), d.Get("description").(string)); err != nil {
-		return fmt.Errorf("resourceADComputerObjectCreate - %s", err)
+		return fmt.Errorf("resourceADComputerObjectCreate - create - %s", err)
 	}
 
 	d.SetId(strings.ToLower(fmt.Sprintf("cn=%s,%s", d.Get("name").(string), d.Get("ou").(string))))
@@ -68,7 +68,7 @@ func resourceADComputerObjectRead(d *schema.ResourceData, meta interface{}) erro
 
 	computer, err := api.getComputer(d.Get("name").(string))
 	if err != nil {
-		return fmt.Errorf("resourceADComputerObjectRead - %s", err)
+		return fmt.Errorf("resourceADComputerObjectRead - getComputer - %s", err)
 	}
 
 	if computer == nil {
@@ -81,7 +81,7 @@ func resourceADComputerObjectRead(d *schema.ResourceData, meta interface{}) erro
 	d.SetId(strings.ToLower(computer.dn))
 
 	if err := d.Set("description", computer.description); err != nil {
-		return fmt.Errorf("resourceADComputerObjectRead - failed to set description: %s", err)
+		return fmt.Errorf("resourceADComputerObjectRead - set description - failed to set description: %s", err)
 	}
 
 	return nil
@@ -100,8 +100,8 @@ func resourceADComputerObjectUpdate(d *schema.ResourceData, meta interface{}) er
 
 	// check description
 	if d.HasChange("description") {
-		if err := api.updateComputerDescription(d.Get("name").(string), d.Get("ou").(string), d.Get("description").(string)); err != nil {
-			return fmt.Errorf("resourceADComputerObjectUpdate - %s", err)
+		if err := api.updateComputerDescription(d.Get("name").(string), oldOU.(string), d.Get("description").(string)); err != nil {
+			return fmt.Errorf("resourceADComputerObjectUpdate - update description - %s", err)
 		}
 
 		d.SetPartial("description")
@@ -110,7 +110,7 @@ func resourceADComputerObjectUpdate(d *schema.ResourceData, meta interface{}) er
 	// check ou
 	if d.HasChange("ou") {
 		if err := api.updateComputerOU(d.Get("name").(string), oldOU.(string), newOU.(string)); err != nil {
-			return fmt.Errorf("resourceADComputerObjectUpdate - %s", err)
+			return fmt.Errorf("resourceADComputerObjectUpdate - update ou - %s", err)
 		}
 	}
 

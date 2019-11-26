@@ -43,7 +43,8 @@ func (api *API) searchObject(filter, baseDN string, attributes []string) ([]*Obj
 			}
 		}
 
-		return nil, fmt.Errorf("searchObject - failed to search for object (%s): %s", filter, err)
+		return nil, fmt.Errorf("searchObject - failed to search for object (%s): %s, %s, %s, %s",
+			filter, err, request.BaseDN, request.Filter, request.Attributes)
 	}
 
 	// nothing returned

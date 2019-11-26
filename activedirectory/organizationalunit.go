@@ -2,6 +2,7 @@ package activedirectory
 
 import (
 	"fmt"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/ldap.v3"
@@ -114,7 +115,27 @@ func (api *API) updateOUDescription(cn, baseOU, description string) error {
 // updates the name of an existing ou object
 func (api *API) updateOUName(name, baseOU, newName string) error {
 	log.Infof("Updating name of ou %s under %s.", name, baseOU)
-	return api.moveOU(name, newName, baseOU)
+
+	tmp, err := api.getOU(name, baseOU)
+	if err != nil {
+		return fmt.Errorf("updateOUName - talking to active directory failed: %s", err)
+	}
+
+	if tmp == nil {
+		return fmt.Errorf("updateOUName - ou object %s does not exists under %s: %s", name, baseOU, err)
+	}
+
+	// specific uid of the ou
+	UID := fmt.Sprintf("ou=%s", newName)
+
+	// move ou object to new ou
+	req := ldap.NewModifyDNRequest(fmt.Sprintf("ou=%s,%s", name, baseOU), UID, true, "")
+	if err := api.client.ModifyDN(req); err != nil {
+		return fmt.Errorf("updateOUName - failed to move ou: %s", err)
+	}
+
+	log.Infof("OU moved.")
+	return nil
 }
 
 // deletes an existing ou object.
@@ -127,7 +148,9 @@ func (api *API) deleteOU(dn string) error {
 	}
 
 	if len(objects) > 0 {
-		return fmt.Errorf("deleteOU - failed to delete ou %s because it has child items", dn)
+		if len(objects) > 1 || !strings.EqualFold(objects[0].dn, dn) {
+			return fmt.Errorf("deleteOU - failed to delete ou %s because it has child items: %s", dn, objects[0].dn)
+		}
 	}
 
 	return api.deleteObject(dn)

@@ -52,7 +52,7 @@ func resourceADOUObjectCreate(d *schema.ResourceData, meta interface{}) error {
 	api := meta.(APIInterface)
 
 	if err := api.createOU(d.Get("name").(string), d.Get("base_ou").(string), d.Get("description").(string)); err != nil {
-		return fmt.Errorf("resourceADOUObjectCreate - %s", err)
+		return fmt.Errorf("resourceADOUObjectCreate - create ou - %s", err)
 	}
 
 	d.SetId(strings.ToLower(fmt.Sprintf("ou=%s,%s", d.Get("name").(string), d.Get("base_ou").(string))))
@@ -67,7 +67,7 @@ func resourceADOUObjectRead(d *schema.ResourceData, meta interface{}) error {
 
 	ou, err := api.getOU(d.Get("name").(string), d.Get("base_ou").(string))
 	if err != nil {
-		return fmt.Errorf("resourceADOUObjectRead - %s", err)
+		return fmt.Errorf("resourceADOUObjectRead - get ou - %s", err)
 	}
 
 	if ou == nil {
@@ -78,16 +78,16 @@ func resourceADOUObjectRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if err := d.Set("name", ou.name); err != nil {
-		return fmt.Errorf("resourceADOUObjectRead - failed to set ou name to %s: %s", ou.name, err)
+		return fmt.Errorf("resourceADOUObjectRead - set name - failed to set ou name to %s: %s", ou.name, err)
 	}
 
 	baseOU := strings.ToLower(ou.dn[(len(ou.name) + 1 + 3):]) // remove 'ou=' and ',' and ou name
 	if err := d.Set("base_ou", baseOU); err != nil {
-		return fmt.Errorf("resourceADOUObjectRead - failed to set ou base_ou to %s: %s", baseOU, err)
+		return fmt.Errorf("resourceADOUObjectRead - set base_ou - failed to set ou base_ou to %s: %s", baseOU, err)
 	}
 
 	if err := d.Set("description", ou.description); err != nil {
-		return fmt.Errorf("resourceADOUObjectRead - failed to set ou description to %s: %s", ou.description, err)
+		return fmt.Errorf("resourceADOUObjectRead - set description - failed to set ou description to %s: %s", ou.description, err)
 	}
 
 	d.SetId(strings.ToLower(ou.dn))
@@ -110,7 +110,7 @@ func resourceADOUObjectUpdate(d *schema.ResourceData, meta interface{}) error {
 	// check description
 	if d.HasChange("description") {
 		if err := api.updateOUDescription(oldName.(string), oldOU.(string), d.Get("description").(string)); err != nil {
-			return fmt.Errorf("resourceADOUObjectUpdate - %s", err)
+			return fmt.Errorf("resourceADOUObjectUpdate - update description - %s", err)
 		}
 
 		d.SetPartial("description")
@@ -119,7 +119,7 @@ func resourceADOUObjectUpdate(d *schema.ResourceData, meta interface{}) error {
 	// check description
 	if d.HasChange("name") {
 		if err := api.updateOUName(oldName.(string), oldOU.(string), newName.(string)); err != nil {
-			return fmt.Errorf("resourceADOUObjectUpdate - %s", err)
+			return fmt.Errorf("resourceADOUObjectUpdate - update ou name - %s", err)
 		}
 
 		d.SetPartial("name")
@@ -128,7 +128,7 @@ func resourceADOUObjectUpdate(d *schema.ResourceData, meta interface{}) error {
 	// check ou
 	if d.HasChange("base_ou") {
 		if err := api.moveOU(newName.(string), oldOU.(string), newOU.(string)); err != nil {
-			return fmt.Errorf("resourceADOUObjectUpdate - %s", err)
+			return fmt.Errorf("resourceADOUObjectUpdate - move ou - %s", err)
 		}
 	}
 

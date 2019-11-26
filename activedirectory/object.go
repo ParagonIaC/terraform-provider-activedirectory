@@ -71,7 +71,7 @@ func (api *API) getObject(dn string, attributes []string) (*Object, error) {
 		return nil, fmt.Errorf("getObject - failed to get object %s: %s", dn, err)
 	}
 
-	if objects == nil || len(objects) == 0 {
+	if len(objects) == 0 {
 		return nil, nil
 	}
 

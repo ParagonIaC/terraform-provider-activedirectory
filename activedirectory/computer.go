@@ -31,7 +31,7 @@ func (api *API) getComputer(name string) (*Computer, error) {
 		return nil, fmt.Errorf("getComputer - searching for computer object %s failed: %s", name, err)
 	}
 
-	if ret == nil || len(ret) == 0 {
+	if len(ret) == 0 {
 		return nil, nil
 	}
 

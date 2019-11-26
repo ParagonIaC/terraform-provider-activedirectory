@@ -20,12 +20,12 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func createADComputerResult(n int) *ldap.SearchResult {
+func createADComputerResult() *ldap.SearchResult {
 	attributes := []string{"cn", "description"}
-	return createADResult(n, attributes)
+	return createADResult(1, attributes)
 }
 
-func TestGetComputer(t *testing.T) {
+func TestGetComputer(t *testing.T) { // nolint:funlen
 	name := getRandomString(10)
 	attributes := []string{"description", "cn"}
 
@@ -84,7 +84,7 @@ func TestGetComputer(t *testing.T) {
 
 	t.Run("getComputer - should search for computer objects", func(t *testing.T) {
 		matchFunc := func(sr *ldap.SearchRequest) bool {
-			return strings.Index(sr.Filter, "objectclass=computer") > -1
+			return strings.Contains(sr.Filter, "objectclass=computer")
 		}
 
 		mockClient := new(MockClient)
@@ -110,7 +110,7 @@ func TestGetComputer(t *testing.T) {
 	})
 
 	t.Run("getComputer - should return computer object filled with search result data", func(t *testing.T) {
-		sr := createADComputerResult(1)
+		sr := createADComputerResult()
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(sr, nil)
 
@@ -188,7 +188,7 @@ func TestCreateComputer(t *testing.T) {
 	})
 
 	t.Run("createComputer - should error when a computer with the same name in another OU exists", func(t *testing.T) {
-		sr := createADComputerResult(1)
+		sr := createADComputerResult()
 
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(sr, nil)
@@ -201,7 +201,7 @@ func TestCreateComputer(t *testing.T) {
 	})
 
 	t.Run("createComputer - should update description when the exact object is found", func(t *testing.T) {
-		sr := createADComputerResult(1)
+		sr := createADComputerResult()
 		sr.Entries[0].DN = fmt.Sprintf("cn=%s,%s", sr.Entries[0].GetAttributeValue("cn"), baseOU)
 
 		mockClient := new(MockClient)
@@ -226,7 +226,7 @@ func TestCreateComputer(t *testing.T) {
 }
 
 func TestUpdateComputerOU(t *testing.T) {
-	ou := getRandomOU(2, 2)
+	ou := getRandomOU(3, 2)
 	newOU := fmt.Sprintf("ou=%s,%s", getRandomString(5), ou)
 
 	t.Run("updateComputerOU - should forward error from api.getComputer", func(t *testing.T) {
@@ -248,7 +248,7 @@ func TestUpdateComputerOU(t *testing.T) {
 	})
 
 	t.Run("updateComputerOU - should forward error from ldap.Client.ModifyDN", func(t *testing.T) {
-		sr := createADComputerResult(1)
+		sr := createADComputerResult()
 
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(sr, nil)
@@ -260,7 +260,7 @@ func TestUpdateComputerOU(t *testing.T) {
 	})
 
 	t.Run("updateComputerOU - should do nothing when computer object is already in the correct ou", func(t *testing.T) {
-		sr := createADComputerResult(1)
+		sr := createADComputerResult()
 		cn := sr.Entries[0].GetAttributeValue("cn")
 		sr.Entries[0].DN = fmt.Sprintf("CN=%s,%s", cn, newOU)
 
@@ -274,7 +274,7 @@ func TestUpdateComputerOU(t *testing.T) {
 	})
 
 	t.Run("updateComputerOU - should return nil when computer ou was updated", func(t *testing.T) {
-		sr := createADComputerResult(1)
+		sr := createADComputerResult()
 		cn := sr.Entries[0].GetAttributeValue("cn")
 
 		mockClient := new(MockClient)
@@ -287,7 +287,7 @@ func TestUpdateComputerOU(t *testing.T) {
 	})
 
 	t.Run("updateComputerOU - should call ModifyDN with correct ModifyDNrequest", func(t *testing.T) {
-		sr := createADComputerResult(1)
+		sr := createADComputerResult()
 		cn := sr.Entries[0].GetAttributeValue("cn")
 
 		matchFunc := func(sr *ldap.ModifyDNRequest) bool {
@@ -307,7 +307,7 @@ func TestUpdateComputerOU(t *testing.T) {
 
 func TestUpdateComputerDescription(t *testing.T) {
 	t.Run("updateComputerDescription - should forward error from ldap.client.Modify", func(t *testing.T) {
-		sr := createADComputerResult(1)
+		sr := createADComputerResult()
 		cn := sr.Entries[0].GetAttributeValue("cn")
 
 		mockClient := new(MockClient)
@@ -321,7 +321,7 @@ func TestUpdateComputerDescription(t *testing.T) {
 	})
 
 	t.Run("updateComputerDescription - should return nil when object is updated successfully", func(t *testing.T) {
-		sr := createADComputerResult(1)
+		sr := createADComputerResult()
 		cn := sr.Entries[0].GetAttributeValue("cn")
 
 		mockClient := new(MockClient)
@@ -335,7 +335,7 @@ func TestUpdateComputerDescription(t *testing.T) {
 	})
 
 	t.Run("updateComputerDescription - should modify description", func(t *testing.T) {
-		sr := createADComputerResult(1)
+		sr := createADComputerResult()
 
 		matchFunc := func(req *ldap.ModifyRequest) bool {
 			for i := 0; i < len(req.Changes); i++ {

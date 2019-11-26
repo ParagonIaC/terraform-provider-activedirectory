@@ -310,7 +310,7 @@ func TestResourceADComputerObjectRead(t *testing.T) {
 
 func TestResourceADComputerObjectUpdate(t *testing.T) {
 	name := getRandomString(10)
-	ou := getRandomOU(2, 2)
+	ou := getRandomOU(3, 2)
 	description := getRandomString(10)
 
 	testComputer := &Computer{
@@ -364,7 +364,7 @@ func TestResourceADComputerObjectUpdate(t *testing.T) {
 
 func TestResourceADComputerObjectDelete(t *testing.T) {
 	name := getRandomString(10)
-	ou := getRandomOU(2, 2)
+	ou := getRandomOU(2, 3)
 	description := getRandomString(10)
 
 	resourceSchema := resourceADComputerObject().Schema

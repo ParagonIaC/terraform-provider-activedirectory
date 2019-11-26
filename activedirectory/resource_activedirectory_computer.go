@@ -92,7 +92,6 @@ func resourceADComputerObjectUpdate(d *schema.ResourceData, meta interface{}) er
 	log.Infof("Updating AD computer object")
 
 	api := meta.(APIInterface)
-	// dn := strings.ToLower(fmt.Sprintf("cn=%s,%s", d.Get("name").(string), d.Get("ou").(string)))
 
 	oldOU, newOU := d.GetChange("ou")
 

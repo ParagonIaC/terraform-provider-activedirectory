@@ -140,7 +140,7 @@ func TestCreateOU(t *testing.T) {
 
 	t.Run("createOU - should set standard attributes for ou objects", func(t *testing.T) {
 		name := getRandomString(10)
-		ou := getRandomOU(2, 2)
+		ou := getRandomOU(2, 3)
 		desc := getRandomString(10)
 
 		matchFunc := func(sr *ldap.AddRequest) bool {
@@ -229,7 +229,7 @@ func TestMoveOU(t *testing.T) {
 		res := createADResult(1, attributes)
 
 		cn := getRandomString(10)
-		ou := getRandomOU(2, 2)
+		ou := getRandomOU(3, 2)
 		newOU := fmt.Sprintf("ou=%s,%s", getRandomString(10), ou)
 
 		matchFunc := func(sr *ldap.ModifyDNRequest) bool {
@@ -250,7 +250,7 @@ func TestMoveOU(t *testing.T) {
 		res := createADResult(1, attributes)
 
 		cn := res.Entries[0].GetAttributeValue("name")
-		ou := getRandomOU(2, 2)
+		ou := getRandomOU(2, 3)
 		newOU := fmt.Sprintf("ou=%s,%s", getRandomString(10), ou)
 		res.Entries[0].DN = fmt.Sprintf("ou=%s,%s", cn, newOU)
 
@@ -348,7 +348,7 @@ func TestDeleteOU(t *testing.T) {
 		mockClient.On("Search", mock.Anything).Return(nil, fmt.Errorf("error"))
 
 		api := &API{client: mockClient}
-		err := api.deleteOU("")
+		err := api.deleteOU("test1")
 
 		assert.Error(t, err)
 	})
@@ -359,7 +359,7 @@ func TestDeleteOU(t *testing.T) {
 		mockClient.On("Del", mock.Anything).Return(fmt.Errorf("error"))
 
 		api := &API{client: mockClient}
-		err := api.deleteOU("")
+		err := api.deleteOU("test2")
 
 		assert.Error(t, err)
 	})
@@ -370,7 +370,7 @@ func TestDeleteOU(t *testing.T) {
 		mockClient.On("Del", mock.Anything).Return(nil)
 
 		api := &API{client: mockClient}
-		err := api.deleteOU("")
+		err := api.deleteOU("test3")
 
 		assert.NoError(t, err)
 	})
@@ -380,7 +380,7 @@ func TestDeleteOU(t *testing.T) {
 		mockClient.On("Search", mock.Anything).Return(searchResult, nil)
 
 		api := &API{client: mockClient}
-		err := api.deleteOU("")
+		err := api.deleteOU("test4")
 
 		assert.Error(t, err)
 	})

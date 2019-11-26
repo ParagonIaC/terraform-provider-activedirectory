@@ -312,7 +312,7 @@ func TestResourceADOUObjectRead(t *testing.T) {
 
 func TestResourceADOUObjectUpdate(t *testing.T) {
 	name := getRandomString(10)
-	ou := getRandomOU(2, 2)
+	ou := getRandomOU(3, 2)
 	description := getRandomString(10)
 
 	testOU := &OU{

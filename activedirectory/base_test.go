@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//thanks to https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-go
+// thanks to https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-go
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const (
 	letterIdxBits = 6                    // 6 bits to represent a letter index
@@ -36,16 +36,6 @@ func getRandomString(n int) string {
 	}
 
 	return string(b)
-}
-
-func getRandomDomain(n int) string {
-	domain := make([]string, n)
-
-	for i := 0; i < n; i++ {
-		domain[i] = getRandomString(5)
-	}
-
-	return strings.Join(domain, ".")
 }
 
 func getRandomOU(n, m int) string {

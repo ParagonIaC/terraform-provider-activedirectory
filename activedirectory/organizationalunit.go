@@ -29,7 +29,7 @@ func (api *API) getOU(name, baseOU string) (*OU, error) {
 		return nil, fmt.Errorf("getOU - failed to search %s in %s: %s", name, baseOU, err)
 	}
 
-	if ret == nil || len(ret) == 0 {
+	if len(ret) == 0 {
 		return nil, nil
 	}
 

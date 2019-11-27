@@ -134,6 +134,20 @@ jobs:
           name: Run accpetance tests
           command: make testacc
 
+  # release steps #############################################################
+  release:
+    docker:
+      - image: circleci/golang:<< pipeline.parameters.go-image-tag >>
+
+    steps:
+      - checkout
+      - run:
+          name: GO get
+          command: go get -v -t -d ./...
+      - run:
+          name: Release
+          command: curl -sL https://git.io/goreleaser | bash
+
 workflows:
   version: 2.1
 
@@ -146,3 +160,13 @@ workflows:
       - integration-test:
           requires:
             - lint
+      - release:
+          requires:
+            - unit-test
+            - integration-test
+          # Only run this job on git tag pushes
+          # filters:
+          #   branches:
+          #     ignore: /.*/
+          #   tags:
+          #     only: /^v.*/

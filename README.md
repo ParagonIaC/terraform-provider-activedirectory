@@ -106,13 +106,13 @@ $ make testacc
  | AD_PORT | LDAP Port - 389 TCP | 389 | 389 | no |
  | AD_DOMAIN | Domain | eample.org | - | yes |
  | AD_USE_TLS | Use secure connection | false | true | no |
- | AD_USER | Admin user DN | cn=admin,dc=example,dc=org | - | yes |
+ | AD_USER | Admin user DN | admin | - | yes |
  | AD_PASSWORD | Password of the admin user | secret | - | yes |
  | AD_TEST_BASE_OU | OU for the test cases | ou=TerraformTests,dc=example,dc=org | yes (for tests) |
 
 ## Contributing
 Terraform is the work of thousands of contributors. We appreciate your help!
 
-To contribute, please read the contribution guidelines: [Contributing to Terraform - Active Directory Provider](.github/CONTRIBUTING.md)
+To contribute, please read the contribution guidelines: [Contributing to Terraform - Active Directory Provider](CONTRIBUTING.md)
 
 Issues on GitHub are intended to be related to bugs or feature requests with provider codebase. See https://www.terraform.io/docs/extend/community/index.html for a list of community resources to ask questions about Terraform.

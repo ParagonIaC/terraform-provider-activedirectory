@@ -65,7 +65,6 @@ func (api *API) createOU(name, baseOU, description string) error {
 	}
 
 	attributes := make(map[string][]string)
-	attributes["name"] = []string{name}
 	attributes["ou"] = []string{name}
 	attributes["description"] = []string{description}
 

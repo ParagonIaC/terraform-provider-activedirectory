@@ -147,7 +147,6 @@ func TestCreateOU(t *testing.T) {
 			ret := sr.DN == fmt.Sprintf("ou=%s,%s", name, ou)
 
 			stdAttributes := map[string][]string{
-				"name":        {name},
 				"ou":          {name},
 				"description": {desc},
 			}

@@ -12,7 +12,7 @@ import (
 
 func TestGetOU(t *testing.T) {
 	numberOfObjects := 1
-	attributes := []string{"name", "description"}
+	attributes := []string{"ou", "description"}
 	searchResult := createADResult(numberOfObjects, attributes)
 
 	t.Run("getOU - should forward errors from api.getObject", func(t *testing.T) {
@@ -90,7 +90,7 @@ func TestGetOU(t *testing.T) {
 }
 
 func TestCreateOU(t *testing.T) {
-	attributes := []string{"name", "description"}
+	attributes := []string{"ou", "description"}
 
 	t.Run("createOU - should forward errors from api.client.Search", func(t *testing.T) {
 		mockClient := new(MockClient)
@@ -114,7 +114,7 @@ func TestCreateOU(t *testing.T) {
 
 	t.Run("createOU - should update description when exact object was found", func(t *testing.T) {
 		res := createADResult(1, attributes)
-		name := res.Entries[0].GetAttributeValue("name")
+		name := res.Entries[0].GetAttributeValue("ou")
 		description := res.Entries[0].GetAttributeValue("description")
 		baseOU := getRandomOU(2, 2)
 		res.Entries[0].DN = fmt.Sprintf("ou=%s,%s", name, baseOU)
@@ -180,7 +180,7 @@ func TestCreateOU(t *testing.T) {
 }
 
 func TestMoveOU(t *testing.T) {
-	attributes := []string{"name", "description"}
+	attributes := []string{"ou", "description"}
 
 	t.Run("moveOU - should forward error from ldap.Client.Search", func(t *testing.T) {
 		mockClient := new(MockClient)
@@ -248,7 +248,7 @@ func TestMoveOU(t *testing.T) {
 	t.Run("moveOU - should do nothing when ou is already located under the target ou", func(t *testing.T) {
 		res := createADResult(1, attributes)
 
-		cn := res.Entries[0].GetAttributeValue("name")
+		cn := res.Entries[0].GetAttributeValue("ou")
 		ou := getRandomOU(2, 3)
 		newOU := fmt.Sprintf("ou=%s,%s", getRandomString(10), ou)
 		res.Entries[0].DN = fmt.Sprintf("ou=%s,%s", cn, newOU)
@@ -264,7 +264,7 @@ func TestMoveOU(t *testing.T) {
 }
 
 func TestUpdateOUDescription(t *testing.T) {
-	attributes := []string{"name", "description"}
+	attributes := []string{"ou", "description"}
 
 	t.Run("updateOUDescription - should forward error from ldap.client.Modify", func(t *testing.T) {
 		mockClient := new(MockClient)
@@ -312,7 +312,7 @@ func TestUpdateOUDescription(t *testing.T) {
 }
 
 func TestUpdateOUName(t *testing.T) {
-	attributes := []string{"name", "description"}
+	attributes := []string{"ou", "description"}
 
 	t.Run("updateOUName - should forward error from ldap.client.ModifyDN", func(t *testing.T) {
 		mockClient := new(MockClient)
@@ -339,7 +339,7 @@ func TestUpdateOUName(t *testing.T) {
 
 func TestDeleteOU(t *testing.T) {
 	numberOfObjects := 1
-	attributes := []string{"name", "description"}
+	attributes := []string{"ou", "description"}
 	searchResult := createADResult(numberOfObjects, attributes)
 
 	t.Run("deleteOU - should forward error from api.searchObject", func(t *testing.T) {

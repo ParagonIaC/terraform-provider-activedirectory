@@ -1,0 +1,30 @@
+env:
+  - GO111MODULE=on
+before:
+  hooks:
+    - go mod tidy
+
+archives:
+  - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    replacements:
+      linux: Linux
+      amd64: x86_64
+
+builds:
+  - id: terraform-provider-activedirectory
+    env:
+        - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    goarm:
+      - 7
+    main: main.go
+    binary: terraform-provider-activedirectory
+    ldflags:
+      - -s -w -X main.build={{.Version}}
+    hooks:
+      post: make compress
+    

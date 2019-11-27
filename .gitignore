@@ -16,3 +16,6 @@ terraform-provider-activedirectory
 
 # test coverage
 coverage.txt
+
+# ignore release build
+**/dist/*

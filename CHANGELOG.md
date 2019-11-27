@@ -1,3 +1,8 @@
+## 0.0.6 (November 28, 2019)
+
+NOTES:
+* We added GoReleaser to our releasing pipeline.
+
 ## 0.0.5 (November 27, 2019)
 
 NOTES:

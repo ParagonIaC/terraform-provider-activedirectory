@@ -157,13 +157,13 @@ workflows:
       - integration-test:
           requires:
             - lint
-      - release:
-          requires:
-            - unit-test
-            - integration-test
-          # Only run this job on git tag pushes
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
+      # - release:
+      #     # requires:
+      #     #   - unit-test
+      #     #   - integration-test
+      #     # Only run this job on git tag pushes
+      #     filters:
+      #       branches:
+      #         ignore: /.*/
+      #       tags:
+      #         only: /v[0-9]+(\.[0-9]+)*(-.*)*/ # /^v.*/

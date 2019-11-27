@@ -314,6 +314,24 @@ func TestUpdateOUDescription(t *testing.T) {
 func TestUpdateOUName(t *testing.T) {
 	attributes := []string{"ou", "description"}
 
+	t.Run("updateOUName - should forward error from ldap.Client.Search", func(t *testing.T) {
+		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, fmt.Errorf("error"))
+
+		api := &API{client: mockClient}
+		err := api.updateOUName("", "", "")
+		assert.Error(t, err)
+	})
+
+	t.Run("updateOUName - should error when ou was not found", func(t *testing.T) {
+		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, nil)
+
+		api := &API{client: mockClient}
+		err := api.updateOUName("", "", "")
+		assert.Error(t, err)
+	})
+
 	t.Run("updateOUName - should forward error from ldap.client.ModifyDN", func(t *testing.T) {
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(createADResult(1, attributes), nil)

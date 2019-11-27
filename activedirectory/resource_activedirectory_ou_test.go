@@ -367,6 +367,18 @@ func TestResourceADOUObjectUpdate(t *testing.T) {
 
 		assert.Error(t, err)
 	})
+
+	t.Run("resourceADOUObjectUpdate - should return error when updateOUName fails", func(t *testing.T) {
+		api := new(MockAPIInterface)
+		api.On("getOU", mock.Anything, mock.Anything).Return(testOU, nil)
+		api.On("updateOUName", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
+		api.On("updateOUDescription", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
+		err := resourceADOUObjectUpdate(resourceLocalData, api)
+
+		assert.Error(t, err)
+	})
 }
 
 func TestResourceADOUObjectDelete(t *testing.T) {

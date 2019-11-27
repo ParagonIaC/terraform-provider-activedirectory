@@ -319,7 +319,7 @@ func TestUpdateOUName(t *testing.T) {
 		mockClient.On("Search", mock.Anything).Return(nil, fmt.Errorf("error"))
 
 		api := &API{client: mockClient}
-		err := api.updateOUName("", "", "")
+		err := api.updateOUName("a", "b", "c")
 		assert.Error(t, err)
 	})
 
@@ -328,7 +328,7 @@ func TestUpdateOUName(t *testing.T) {
 		mockClient.On("Search", mock.Anything).Return(nil, nil)
 
 		api := &API{client: mockClient}
-		err := api.updateOUName("", "", "")
+		err := api.updateOUName("a", "b", "c")
 		assert.Error(t, err)
 	})
 
@@ -338,7 +338,7 @@ func TestUpdateOUName(t *testing.T) {
 		mockClient.On("ModifyDN", mock.Anything).Return(fmt.Errorf("error"))
 
 		api := &API{client: mockClient}
-		err := api.updateOUName("", "", "")
+		err := api.updateOUName("b", "c", "d")
 
 		assert.Error(t, err)
 	})
@@ -349,7 +349,7 @@ func TestUpdateOUName(t *testing.T) {
 		mockClient.On("ModifyDN", mock.Anything).Return(nil)
 
 		api := &API{client: mockClient}
-		err := api.updateOUName("", "", "")
+		err := api.updateOUName("c", "d", "e")
 
 		assert.NoError(t, err)
 	})

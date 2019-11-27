@@ -16,27 +16,31 @@ parameters:
     type: string
     default: "/tmp/test-reports/unit"
 
-  ldap-host:
+  ad-host:
     type: string
     default: localhost
   
-  ldap-port:
+  ad-port:
     type: integer
     default: 10389
   
-  ldap-usetls:
+  ad-usetls:
     type: boolean
     default: false
 
-  ldap-user:
+  ad-user:
     type: string
     default: "uid=admin,ou=system"
   
-  ldap-password:
+  ad-password:
     type: string
     default: "secret"
   
-  ldap-base-ou:
+  ad-domain:
+    type: string
+    default: "openmicroscopy.org"
+
+  ad-base-ou:
     type: string
     default: "ou=computer,dc=openmicroscopy,dc=org"
 
@@ -48,10 +52,18 @@ jobs:
     working_directory: << pipeline.parameters.workingdir >>
     steps:
       - checkout
-      - run: go get -v -t -d ./...
-      - run: make tools
-      - run: make fmtcheck
-      - run: make lint
+      - run:
+          name: GO get
+          command: go get -v -t -d ./...
+      - run:
+          name: Tools
+          command: make tools
+      - run:
+          name: Format Check
+          command: make fmtcheck
+      - run:
+          name: Linter
+          command: make lint
 
   # golang unit tests #########################################################
   unit-test:
@@ -65,12 +77,19 @@ jobs:
 
     steps:
       - checkout
-      - run: go get -v -t -d ./...
-      - run: mkdir -p << pipeline.parameters.testdir >>
-      - run: make test
+      - run:
+          name: GO get
+          command: go get -v -t -d ./...
+      - run:
+          name: Prepare tests
+          command: mkdir -p << pipeline.parameters.testdir >>
+      - run:
+          name: Perform tests
+          command: make test
       - store_test_results:
           path: << pipeline.parameters.testdir >>
       - run:
+          name: Move tests to CodeCov.io
           shell: /bin/bash -eo pipefail
           command: |
             bash <(curl -s https://codecov.io/bash)
@@ -84,31 +103,47 @@ jobs:
     working_directory: << pipeline.parameters.workingdir >>
     environment:
       DOCKERIZE_VERSION: v0.6.1
-      AD_HOST: << pipeline.parameters.ldap-host >>
-      AD_PORT: << pipeline.parameters.ldap-port >>
-      AD_USE_TLS: << pipeline.parameters.ldap-usetls >>
-      AD_BIND_USER: << pipeline.parameters.ldap-user >>
-      AD_BIND_PASSWORD: << pipeline.parameters.ldap-password >>
-      AD_COMPUTER_TEST_BASE_OU: << pipeline.parameters.ldap-base-ou >>
+      AD_HOST: << pipeline.parameters.ad-host >>
+      AD_PORT: << pipeline.parameters.ad-port >>
+      AD_DOMAIN: << pipeline.parameters.ad-domain >>
+      AD_USE_TLS: << pipeline.parameters.ad-usetls >>
+      AD_USER: << pipeline.parameters.ad-user >>
+      AD_PASSWORD: << pipeline.parameters.ad-password >>
+      AD_TEST_BASE_OU: << pipeline.parameters.ad-base-ou >>
 
     steps:
       - checkout
-      - run: go get -v -t -d ./...
-      - run: sudo apt-get update && sudo apt-get install -y ldap-utils
-      - run: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-          && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-      - run: dockerize -wait tcp://<< pipeline.parameters.ldap-host >>:<< pipeline.parameters.ldap-port >> -timeout 2m
-      - run: ldapadd -v -h << pipeline.parameters.ldap-host >>:<< pipeline.parameters.ldap-port >> -c -x
-          -D << pipeline.parameters.ldap-user >> -w << pipeline.parameters.ldap-password >> -f ./tests/ad_test_data.ldif
-      - run: make testacc
+      - run:
+          name: GO get
+          command: go get -v -t -d ./...
+      - run:
+          name: Install utils
+          command: sudo apt-get update && sudo apt-get install -y ldap-utils
+      - run:
+          name: Get Dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+              && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+      - run:
+          name: Wait for LDAP test server
+          command: dockerize -wait tcp://<< pipeline.parameters.ad-host >>:<< pipeline.parameters.ad-port >> -timeout 2m
+      - run:
+          name: Modify LDAP with test data
+          command: ldapadd -v -h << pipeline.parameters.ad-host >>:<< pipeline.parameters.ad-port >> -c -x
+            -D << pipeline.parameters.ad-user >> -w << pipeline.parameters.ad-password >> -f ./tests/ad_test_data.ldif
+      - run:
+          name: Run accpetance tests
+          command: make testacc
 
+  # release steps #############################################################
   release:
     docker:
       - image: circleci/golang::<< pipeline.parameters.go-image-tag >>
 
     steps:
       - checkout
-      - run: curl -sL https://git.io/goreleaser | bash
+      - run:
+          name: Release
+          command: curl -sL https://git.io/goreleaser | bash
 
 workflows:
   version: 2.1

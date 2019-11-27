@@ -1,9 +1,10 @@
 package activedirectory
 
 import (
-	"fmt"
+	"math/rand"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/ldap.v3"
@@ -16,11 +17,14 @@ func TestDecodeADAttributes(t *testing.T) {
 	})
 
 	t.Run("decodeADAttributes - should map ldap.EntryAttribute to map[string]*", func(t *testing.T) {
-		attributes := make([]*ldap.EntryAttribute, 10)
+		rand.Seed(time.Now().UnixNano())
+		num := rand.Intn(10)
+
+		attributes := make([]*ldap.EntryAttribute, num)
 		for i := 0; i < len(attributes); i++ {
 			attributes[i] = &ldap.EntryAttribute{
-				Name:   fmt.Sprintf("Attr%d", i),
-				Values: []string{fmt.Sprintf("Value%d", i)},
+				Name:   getRandomString(10),
+				Values: []string{getRandomString(10)},
 			}
 		}
 

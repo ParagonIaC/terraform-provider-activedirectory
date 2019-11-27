@@ -1,17 +1,16 @@
 TEST?=./...
 PKG_NAME=activedirectory
 
-default: install
+default: build
 
-build:
-	fmtcheck lint
+build: fmtcheck lint
 	go install
 
 test: fmtcheck
 	gotestsum -f short-verbose -- -coverprofile=coverage.txt ./...
 
 testacc: fmtcheck
-	TF_ACC=1 go test $(TEST) -v -count 1 -parallel 20 -timeout 120m
+	TF_ACC=1 go test $(TEST) -v -count 1 -parallel 20 -timeout 120m -run '^(TestAcc.*)$$'
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."

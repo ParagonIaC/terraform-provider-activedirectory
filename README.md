@@ -108,7 +108,7 @@ $ make testacc
  | AD_USE_TLS | Use secure connection | false | true | no |
  | AD_USER | Admin user DN | admin | - | yes |
  | AD_PASSWORD | Password of the admin user | secret | - | yes |
- | AD_TEST_BASE_OU | OU for the test cases | ou=TerraformTests,dc=example,dc=org | yes (for tests) |
+ | AD_TEST_BASE_OU | OU for the test cases | ou=TerraformTests,dc=example,dc=org | - | yes (for tests) |
 
 ## Contributing
 Terraform is the work of thousands of contributors. We appreciate your help!

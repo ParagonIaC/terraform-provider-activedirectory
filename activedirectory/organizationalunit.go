@@ -22,7 +22,7 @@ func (api *API) getOU(name, baseOU string) (*OU, error) {
 	attributes := []string{"name", "ou", "description"}
 
 	// filter
-	filter := fmt.Sprintf("(&(objectclass=organizationalUnit)(name=%s))", name)
+	filter := fmt.Sprintf("(&(objectclass=organizationalUnit)(ou=%s))", name)
 
 	// trying to get ou object
 	ret, err := api.searchObject(filter, baseOU, attributes)
@@ -39,7 +39,7 @@ func (api *API) getOU(name, baseOU string) (*OU, error) {
 	}
 
 	return &OU{
-		name:        ret[0].attributes["name"][0],
+		name:        ret[0].attributes["ou"][0],
 		dn:          ret[0].dn,
 		description: ret[0].attributes["description"][0],
 	}, nil

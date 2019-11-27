@@ -4,9 +4,7 @@
 ![CircleCI](https://img.shields.io/circleci/build/github/adlerrobert/terraform-provider-activedirectory?style=flat-square&logo=circleci&label=CircleCI)
 [![codecov](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory/branch/master/graph/badge.svg)](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory)
 [![GitHub license](https://img.shields.io/github/license/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square&cacheSeconds=3600)](https://github.com/adlerrobert/terraform-provider-activedirectory/blob/master/LICENSE)
-
 [![GitHub release](https://img.shields.io/github/release/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square)](https://GitHub.com/adlerrobert/terraform-provider-activedirectory/releases/)
-[![GitHub tag](https://img.shields.io/github/tag/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square)](https://github.com/adlerrobert/terraform-provider-activedirectory/tags/)
 
 This is a Terraform  Provider to work with Active Directory.
 
@@ -108,7 +106,7 @@ $ make testacc
  | AD_USE_TLS | Use secure connection | false | true | no |
  | AD_USER | Admin user DN | admin | - | yes |
  | AD_PASSWORD | Password of the admin user | secret | - | yes |
- | AD_TEST_BASE_OU | OU for the test cases | ou=TerraformTests,dc=example,dc=org | yes (for tests) |
+ | AD_TEST_BASE_OU | OU for the test cases | ou=TerraformTests,dc=example,dc=org | - | yes (for tests) |
 
 ## Contributing
 Terraform is the work of thousands of contributors. We appreciate your help!

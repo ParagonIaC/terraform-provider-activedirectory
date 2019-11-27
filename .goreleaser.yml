@@ -1,0 +1,36 @@
+env:
+  - GO111MODULE=on
+before:
+  hooks:
+    - go mod tidy
+
+archives:
+  - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+    format_overrides:
+    - goos: windows
+      format: zip
+
+signs:
+  - artifacts: checksum
+
+builds:
+  - id: terraform-provider-activedirectory
+    env:
+        - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - 7
+    main: main.go
+    binary: terraform-provider-activedirectory

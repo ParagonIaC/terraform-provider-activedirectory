@@ -1,6 +1,7 @@
 package activedirectory
 
 import (
+	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -15,7 +16,7 @@ type Object struct {
 
 // Search returns all ad objects which match the filter
 func (api *API) searchObject(filter, baseDN string, attributes []string) ([]*Object, error) {
-	log.Infof("Searching for ad objects in %s: %s", baseDN, filter)
+	log.Infof("Searching for objects in %s with filter %s", baseDN, filter)
 
 	if len(attributes) == 0 {
 		attributes = []string{"*"}
@@ -35,8 +36,20 @@ func (api *API) searchObject(filter, baseDN string, attributes []string) ([]*Obj
 
 	result, err := api.client.Search(request)
 	if err != nil {
-		log.Errorf("Error will searching with filter %s: %s:", filter, err)
-		return nil, err
+		if err, ok := err.(*ldap.Error); ok {
+			if err.ResultCode == 32 {
+				log.Infof("No object found with filter %s", filter)
+				return nil, nil
+			}
+		}
+
+		return nil, fmt.Errorf("searchObject - failed to search for object (%s): %s, %s, %s, %s",
+			filter, err, request.BaseDN, request.Filter, request.Attributes)
+	}
+
+	// nothing returned
+	if result == nil {
+		return nil, nil
 	}
 
 	objects := make([]*Object, len(result.Entries))
@@ -52,22 +65,19 @@ func (api *API) searchObject(filter, baseDN string, attributes []string) ([]*Obj
 
 // Get returns ad object with distinguished name dn
 func (api *API) getObject(dn string, attributes []string) (*Object, error) {
-	log.Infof("Trying to get ad object: %s", dn)
+	log.Infof("Trying to get object %s", dn)
 
 	objects, err := api.searchObject("(objectclass=*)", dn, attributes)
 	if err != nil {
-		if err, ok := err.(*ldap.Error); ok {
-			if err.ResultCode == 32 {
-				log.Info("AD object could not be found", dn)
-				return nil, nil
-			}
-		}
-		log.Errorf("Error will searching for ad object %s: %s:", dn, err)
-		return nil, err
+		return nil, fmt.Errorf("getObject - failed to get object %s: %s", dn, err)
 	}
 
-	if len(objects) != 1 {
+	if len(objects) == 0 {
 		return nil, nil
+	}
+
+	if len(objects) > 1 {
+		return nil, fmt.Errorf("getObject - more than one object with the same dn found")
 	}
 
 	return objects[0], nil
@@ -75,7 +85,17 @@ func (api *API) getObject(dn string, attributes []string) (*Object, error) {
 
 // Create create a ad object
 func (api *API) createObject(dn string, classes []string, attributes map[string][]string) error {
-	log.Infof("Creating object %s (%s)", dn, strings.Join(classes, ","))
+	log.Infof("Creating object %s (class: %s)", dn, strings.Join(classes, ","))
+
+	tmp, err := api.getObject(dn, nil)
+	if err != nil {
+		return fmt.Errorf("createObject - talking to active directory failed: %s", err)
+	}
+
+	// there is already an object with the same dn
+	if tmp != nil {
+		return fmt.Errorf("createObject - object %s already exists", dn)
+	}
 
 	// create ad add request
 	req := ldap.NewAddRequest(dn, nil)
@@ -87,12 +107,10 @@ func (api *API) createObject(dn string, classes []string, attributes map[string]
 
 	// add to ad
 	if err := api.client.Add(req); err != nil {
-		log.Errorf("Creating of object %s failed: %s", dn, err)
-		return err
+		return fmt.Errorf("createObject - failed to create object %s: %s", dn, err)
 	}
 
-	log.Infof("Object %s created", dn)
-
+	log.Info("Object created")
 	return nil
 }
 
@@ -100,23 +118,40 @@ func (api *API) createObject(dn string, classes []string, attributes map[string]
 func (api *API) deleteObject(dn string) error {
 	log.Infof("Removing object %s", dn)
 
+	tmp, err := api.getObject(dn, nil)
+	if err != nil {
+		return fmt.Errorf("deleteComputer - talking to active directory failed: %s", err)
+	}
+
+	if tmp == nil {
+		log.Info("Object is already deleted")
+		return nil
+	}
+
 	// create ad delete request
 	req := ldap.NewDelRequest(dn, nil)
 
 	// delete object from ad
 	if err := api.client.Del(req); err != nil {
-		log.Errorf("Removing of object %s failed: %s", dn, err)
-		return err
+		return fmt.Errorf("deleteObject - failed to delete object %s: %s", dn, err)
 	}
 
-	log.Infof("Object %s removed", dn)
-
+	log.Info("Object removed")
 	return nil
 }
 
 // Update updates a ad object
 func (api *API) updateObject(dn string, classes []string, added, changed, removed map[string][]string) error {
 	log.Infof("Updating object %s", dn)
+
+	tmp, err := api.getObject(dn, nil)
+	if err != nil {
+		return fmt.Errorf("updateObject - talking to active directory failed: %s", err)
+	}
+
+	if tmp == nil {
+		return fmt.Errorf("updateObject - object %s does not exist", dn)
+	}
 
 	req := ldap.NewModifyRequest(dn, nil)
 
@@ -137,10 +172,9 @@ func (api *API) updateObject(dn string, classes []string, added, changed, remove
 	}
 
 	if err := api.client.Modify(req); err != nil {
-		log.Errorf("Updating object %s failed: %s", dn, err)
-		return err
+		return fmt.Errorf("updateObject - failed to update %s: %s", dn, err)
 	}
 
-	log.Infof("Object %s updated", dn)
+	log.Info("Object updated")
 	return nil
 }

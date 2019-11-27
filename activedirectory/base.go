@@ -3,6 +3,8 @@ package activedirectory
 import (
 	"crypto/tls"
 	"fmt"
+	"regexp"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/ldap.v3"
@@ -11,55 +13,88 @@ import (
 // APIInterface is the basic interface for AD API
 type APIInterface interface {
 	connect() error
+	getDomainDN() string
 
 	// generic objects
 	searchObject(filter, baseDN string, attributes []string) ([]*Object, error)
 	getObject(dn string, attributes []string) (*Object, error)
 	createObject(dn string, class []string, attributes map[string][]string) error
 	deleteObject(dn string) error
-	updateObject(dn string, classes []string, added map[string][]string, changed map[string][]string, removed map[string][]string) error
+	updateObject(dn string, classes []string, added, changed, removed map[string][]string) error
 
 	// comupter objects
-	getComputer(dn string, attributes []string) (*Computer, error)
-	createComputer(dn, cn string, attributes map[string][]string) error
-	updateComputerOU(dn, cn, ou string) error
-	updateComputerAttributes(dn string, added map[string][]string, changed map[string][]string, removed map[string][]string) error
-	deleteComputer(dn string) error
+	getComputer(name string) (*Computer, error)
+	createComputer(cn, ou, description string) error
+	updateComputerOU(cn, ou, newOU string) error
+	updateComputerDescription(cn, ou, description string) error
+	deleteComputer(cn, ou string) error
+
+	// ou objects
+	getOU(name, baseOU string) (*OU, error)
+	createOU(name, baseOU, description string) error
+	moveOU(cn, baseOU, newOU string) error
+	updateOUName(name, baseOU, newName string) error
+	updateOUDescription(cn, baseOU, description string) error
+	deleteOU(dn string) error
 }
 
 // API is the basic struct which should implement the interface
 type API struct {
-	adHost       string
-	adPort       int
-	useTLS       bool
-	bindUser     string
-	bindPassword string
-	client       ldap.Client
+	host     string
+	port     int
+	domain   string
+	useTLS   bool
+	user     string
+	password string
+	client   ldap.Client
 }
 
 // connects to an Active Directory server
-func (api *API) connect() (err error) {
-	log.Debugf("Trying AD connection with user %s to server %s", api.bindUser, api.adHost)
+func (api *API) connect() error {
+	log.Infof("Connecting to %s:%d.", api.host, api.port)
 
-	api.client, err = ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.adHost, api.adPort))
+	if api.host == "" {
+		return fmt.Errorf("connect - no ad host specified")
+	}
+
+	if api.domain == "" {
+		return fmt.Errorf("connect - no ad domain specified")
+	}
+
+	if api.user == "" {
+		return fmt.Errorf("connect - no bind user specified")
+	}
+
+	client, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.host, api.port))
 	if err != nil {
-		log.Errorf("Connection to %s:%d failed: %s", api.adHost, api.adPort, err)
-		return err
+		return fmt.Errorf("connect - failed to connect: %s", err)
 	}
 
 	if api.useTLS {
-		if err = api.client.StartTLS(&tls.Config{InsecureSkipVerify: false}); err != nil {
-			api.client = nil
-			return err
+		log.Info("Configuring client to use secure connection.")
+		if err = client.StartTLS(&tls.Config{InsecureSkipVerify: false}); err != nil {
+			return fmt.Errorf("connect - failed to use secure connection: %s", err)
 		}
 	}
 
-	if err = api.client.Bind(api.bindUser, api.bindPassword); err != nil {
-		log.Errorf("Authentication failed: %s", err)
-		api.client.Close()
-		return err
+	user := api.user
+	if ok, e := regexp.MatchString(`.*,ou=.*`, api.user); e != nil || !ok {
+		user = fmt.Sprintf("%s@%s", api.user, api.domain)
 	}
 
-	log.Debugf("AD connection successful for user: %s", api.bindUser)
+	log.Infof("Authenticating user %s.", user)
+	if err = client.Bind(user, api.password); err != nil {
+		client.Close()
+		return fmt.Errorf("connect - authentication failed: %s", err)
+	}
+
+	api.client = client
+
+	log.Infof("Connected successfully to %s:%d.", api.host, api.port)
 	return nil
+}
+
+func (api *API) getDomainDN() string {
+	tmp := strings.Split(api.domain, ".")
+	return strings.ToLower(fmt.Sprintf("dc=%s", strings.Join(tmp, ",dc=")))
 }

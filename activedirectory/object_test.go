@@ -10,18 +10,18 @@ import (
 	"gopkg.in/ldap.v3"
 )
 
-func createADResult(cntEntries, cntAttributes int) *ldap.SearchResult {
+func createADResult(cntEntries int, attributes []string) *ldap.SearchResult {
 	result := new(ldap.SearchResult)
 
 	result.Entries = make([]*ldap.Entry, cntEntries)
 	for i := 0; i < cntEntries; i++ {
 		result.Entries[i] = new(ldap.Entry)
-		result.Entries[i].DN = fmt.Sprintf("DN%d", i)
-		result.Entries[i].Attributes = make([]*ldap.EntryAttribute, cntAttributes)
-		for j := 0; j < cntAttributes; j++ {
-			result.Entries[i].Attributes[j] = &ldap.EntryAttribute{
-				Name:   fmt.Sprintf("Name%d", j),
-				Values: []string{fmt.Sprintf("Values%d", j)},
+		result.Entries[i].DN = getRandomString(10)
+		result.Entries[i].Attributes = make([]*ldap.EntryAttribute, len(attributes))
+		for idx, elem := range attributes {
+			result.Entries[i].Attributes[idx] = &ldap.EntryAttribute{
+				Name:   elem,
+				Values: []string{getRandomString(10)},
 			}
 		}
 	}
@@ -31,10 +31,10 @@ func createADResult(cntEntries, cntAttributes int) *ldap.SearchResult {
 
 func TestSearchObject(t *testing.T) {
 	numberOfObjects := 2
-	numberOfAttributes := 3
-	searchResult := createADResult(numberOfObjects, numberOfAttributes)
+	attributes := []string{"cn", "desc"}
+	searchResult := createADResult(numberOfObjects, attributes)
 
-	t.Run("searchObject - should forward errors from ldap.client.search", func(t *testing.T) {
+	t.Run("searchObject - should forward errors from ldap.client.Search", func(t *testing.T) {
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(nil, fmt.Errorf("error"))
 
@@ -62,16 +62,16 @@ func TestSearchObject(t *testing.T) {
 		for i := 0; i < numberOfObjects; i++ {
 			assert.Equal(t, searchResult.Entries[i].DN, objects[i].dn)
 
-			for j := 0; j < numberOfAttributes; j++ {
+			for j := 0; j < len(attributes); j++ {
 				assert.Equal(t, searchResult.Entries[i].Attributes[j].Values, objects[i].attributes[searchResult.Entries[i].Attributes[j].Name])
 			}
 		}
 	})
 
 	t.Run("searchObject - should forward the input values to ldap.Client.Search", func(t *testing.T) {
-		_filter := "filter"
-		_baseDN := "baseDN"
-		_attributes := []string{"Attribute1", "Atribute2"}
+		_filter := getRandomString(10)
+		_baseDN := getRandomString(10)
+		_attributes := []string{getRandomString(10), getRandomString(10)}
 
 		matchFunc := func(sr *ldap.SearchRequest) bool {
 			return sr.BaseDN == _baseDN && sr.Filter == _filter && reflect.DeepEqual(sr.Attributes, _attributes)
@@ -103,10 +103,36 @@ func TestSearchObject(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, objects)
 	})
+
+	t.Run("searchObject - should return nil when error result equal 32 (nothing found)", func(t *testing.T) {
+		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, &ldap.Error{Err: fmt.Errorf("not found"), ResultCode: 32})
+
+		api := &API{client: mockClient}
+
+		objects, err := api.searchObject("", "", nil)
+
+		assert.NoError(t, err)
+		assert.Nil(t, objects)
+	})
+
+	t.Run("searchObject - should return nil when api.client.Search return nil", func(t *testing.T) {
+		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, nil)
+
+		api := &API{client: mockClient}
+
+		objects, err := api.searchObject("", "", nil)
+
+		assert.NoError(t, err)
+		assert.Nil(t, objects)
+	})
 }
 
 func TestGetObject(t *testing.T) {
-	t.Run("getObject - should forward errors from getObject", func(t *testing.T) {
+	attributes := []string{"cn", "desc"}
+
+	t.Run("getObject - should forward errors from api.client.Search", func(t *testing.T) {
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(nil, fmt.Errorf("error"))
 
@@ -132,8 +158,7 @@ func TestGetObject(t *testing.T) {
 
 	t.Run("getObject - should return nil when nothing was found", func(t *testing.T) {
 		numberOfObjects := 0
-		numberOfAttributes := 3
-		searchResult := createADResult(numberOfObjects, numberOfAttributes)
+		searchResult := createADResult(numberOfObjects, nil)
 
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(searchResult, nil)
@@ -148,8 +173,7 @@ func TestGetObject(t *testing.T) {
 
 	t.Run("getObject - should return one object", func(t *testing.T) {
 		numberOfObjects := 1
-		numberOfAttributes := 3
-		searchResult := createADResult(numberOfObjects, numberOfAttributes)
+		searchResult := createADResult(numberOfObjects, attributes)
 
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(searchResult, nil)
@@ -163,18 +187,17 @@ func TestGetObject(t *testing.T) {
 
 		// check all values
 		assert.Equal(t, searchResult.Entries[0].DN, object.dn)
-		for j := 0; j < numberOfAttributes; j++ {
+		for j := 0; j < len(attributes); j++ {
 			assert.Equal(t, searchResult.Entries[0].Attributes[j].Values, object.attributes[searchResult.Entries[0].Attributes[j].Name])
 		}
 	})
 
-	t.Run("getObject - should forward the input values to API.Search", func(t *testing.T) {
+	t.Run("getObject - should forward the input values to api.client.Search", func(t *testing.T) {
 		numberOfObjects := 1
-		numberOfAttributes := 3
-		searchResult := createADResult(numberOfObjects, numberOfAttributes)
+		searchResult := createADResult(numberOfObjects, attributes)
 
-		_baseDN := "baseDN"
-		_attributes := []string{"Attribute1", "Atribute2"}
+		_baseDN := getRandomString(10)
+		_attributes := []string{getRandomString(10), getRandomString(10)}
 
 		matchFunc := func(sr *ldap.SearchRequest) bool {
 			return sr.BaseDN == _baseDN && reflect.DeepEqual(sr.Attributes, _attributes)
@@ -190,12 +213,51 @@ func TestGetObject(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, objects)
 	})
+
+	t.Run("getObject - should error when more than one result", func(t *testing.T) {
+		numberOfObjects := 2
+		searchResult := createADResult(numberOfObjects, attributes)
+
+		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(searchResult, nil)
+
+		api := &API{client: mockClient}
+
+		objects, err := api.getObject("", nil)
+
+		assert.Error(t, err)
+		assert.Nil(t, objects)
+	})
 }
 
 func TestCreateObject(t *testing.T) {
+	t.Run("createObject - should forward error from ldap.Client.Search", func(t *testing.T) {
+		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, fmt.Errorf("error"))
+
+		api := &API{client: mockClient}
+		err := api.createObject("", nil, nil)
+
+		assert.Error(t, err)
+	})
+
 	t.Run("createObject - should forward error from ldap.Client.Add", func(t *testing.T) {
 		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, nil)
 		mockClient.On("Add", mock.Anything).Return(fmt.Errorf("error"))
+
+		api := &API{client: mockClient}
+		err := api.createObject("", nil, nil)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("createObject - should error when object already exists", func(t *testing.T) {
+		numberOfObjects := 1
+		searchResult := createADResult(numberOfObjects, []string{})
+
+		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(searchResult, nil)
 
 		api := &API{client: mockClient}
 		err := api.createObject("", nil, nil)
@@ -205,6 +267,7 @@ func TestCreateObject(t *testing.T) {
 
 	t.Run("createObject - should return nil when object is created successfully", func(t *testing.T) {
 		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, nil)
 		mockClient.On("Add", mock.Anything).Return(nil)
 
 		api := &API{client: mockClient}
@@ -237,6 +300,7 @@ func TestCreateObject(t *testing.T) {
 		}
 
 		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, nil)
 		mockClient.On("Add", mock.MatchedBy(matchFunc)).Return(nil)
 
 		api := &API{client: mockClient}
@@ -248,8 +312,32 @@ func TestCreateObject(t *testing.T) {
 }
 
 func TestDeleteObject(t *testing.T) {
+	numberOfObjects := 1
+	searchResult := createADResult(numberOfObjects, []string{})
+
+	t.Run("deleteObject - should forward error from ldap.client.Search", func(t *testing.T) {
+		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, fmt.Errorf("error"))
+
+		api := &API{client: mockClient}
+		err := api.deleteObject("")
+
+		assert.Error(t, err)
+	})
+
+	t.Run("deleteObject - should return nil when object is already deleted", func(t *testing.T) {
+		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, nil)
+
+		api := &API{client: mockClient}
+		err := api.deleteObject("")
+
+		assert.NoError(t, err)
+	})
+
 	t.Run("deleteObject - should forward error from ldap.client.Del", func(t *testing.T) {
 		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(searchResult, nil)
 		mockClient.On("Del", mock.Anything).Return(fmt.Errorf("error"))
 
 		api := &API{client: mockClient}
@@ -260,6 +348,7 @@ func TestDeleteObject(t *testing.T) {
 
 	t.Run("deleteObject - should return nil when object is deleted successfully", func(t *testing.T) {
 		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(searchResult, nil)
 		mockClient.On("Del", mock.Anything).Return(nil)
 
 		api := &API{client: mockClient}
@@ -276,6 +365,7 @@ func TestDeleteObject(t *testing.T) {
 		}
 
 		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(searchResult, nil)
 		mockClient.On("Del", mock.MatchedBy(matchFunc)).Return(nil)
 
 		api := &API{client: mockClient}
@@ -287,8 +377,32 @@ func TestDeleteObject(t *testing.T) {
 }
 
 func TestUpdateObject(t *testing.T) {
+	numberOfObjects := 1
+	searchResult := createADResult(numberOfObjects, []string{})
+
+	t.Run("updateObject - should forward error from ldap.client.Search", func(t *testing.T) {
+		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, fmt.Errorf("error"))
+
+		api := &API{client: mockClient}
+		err := api.updateObject("", nil, nil, nil, nil)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("updateObject - should error when object does not exists", func(t *testing.T) {
+		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(nil, nil)
+
+		api := &API{client: mockClient}
+		err := api.updateObject("", nil, nil, nil, nil)
+
+		assert.Error(t, err)
+	})
+
 	t.Run("updateObject - should forward error from ldap.client.Modify", func(t *testing.T) {
 		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(searchResult, nil)
 		mockClient.On("Modify", mock.Anything).Return(fmt.Errorf("error"))
 
 		api := &API{client: mockClient}
@@ -299,6 +413,7 @@ func TestUpdateObject(t *testing.T) {
 
 	t.Run("updateObject - should return nil when object is updated successfully", func(t *testing.T) {
 		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(searchResult, nil)
 		mockClient.On("Modify", mock.Anything).Return(nil)
 
 		api := &API{client: mockClient}
@@ -308,16 +423,16 @@ func TestUpdateObject(t *testing.T) {
 	})
 
 	t.Run("updateObject - should forward the input values to ldap.Client.Modify", func(t *testing.T) {
-		_baseDN := "baseDN"
-		_classes := []string{"Class1", "Class2"}
+		_baseDN := getRandomString(10)
+		_classes := []string{getRandomString(10), getRandomString(10)}
 		_added := map[string][]string{
-			"Attribute1": {"Value1"},
+			getRandomString(10): {getRandomString(10)},
 		}
 		_changed := map[string][]string{
-			"Attribute2": {"Value2"},
+			getRandomString(10): {getRandomString(10)},
 		}
 		_removed := map[string][]string{
-			"Attribute3": {"Value3"},
+			getRandomString(10): {getRandomString(10)},
 		}
 
 		matchFunc := func(req *ldap.ModifyRequest) bool {
@@ -340,6 +455,7 @@ func TestUpdateObject(t *testing.T) {
 		}
 
 		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(searchResult, nil)
 		mockClient.On("Modify", mock.MatchedBy(matchFunc)).Return(nil)
 
 		api := &API{client: mockClient}

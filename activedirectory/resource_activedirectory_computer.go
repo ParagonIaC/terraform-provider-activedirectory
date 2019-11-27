@@ -33,6 +33,9 @@ func resourceADComputerObject() *schema.Resource {
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return strings.EqualFold(old, new)
 				},
+				StateFunc: func(val interface{}) string {
+					return strings.ToLower(val.(string))
+				},
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -45,50 +48,40 @@ func resourceADComputerObject() *schema.Resource {
 
 // resourceADComputerObjectCreate is 'create' part of terraform CRUD functions for AD provider
 func resourceADComputerObjectCreate(d *schema.ResourceData, meta interface{}) error {
+	log.Infof("Creating AD computer object")
+
 	api := meta.(APIInterface)
-	dn := fmt.Sprintf("cn=%s,%s", d.Get("name").(string), d.Get("ou").(string))
 
-	desc := []string{}
-	if d.Get("description").(string) != "" {
-		desc = append(desc, d.Get("description").(string))
+	if err := api.createComputer(d.Get("name").(string), d.Get("ou").(string), d.Get("description").(string)); err != nil {
+		return fmt.Errorf("resourceADComputerObjectCreate - create - %s", err)
 	}
 
-	attributes := map[string][]string{
-		"description": desc,
-	}
-
-	if err := api.createComputer(dn, d.Get("name").(string), attributes); err != nil {
-		log.Errorf("Error while creating ad computer object %s: %s", dn, err)
-		return err
-	}
-
-	d.SetId(dn)
+	d.SetId(strings.ToLower(fmt.Sprintf("cn=%s,%s", d.Get("name").(string), d.Get("ou").(string))))
 	return resourceADComputerObjectRead(d, meta)
 }
 
 // resourceADComputerObjectRead is 'read' part of terraform CRUD functions for AD provider
 func resourceADComputerObjectRead(d *schema.ResourceData, meta interface{}) error {
-	api := meta.(APIInterface)
-	dn := fmt.Sprintf("cn=%s,%s", d.Get("name").(string), d.Get("ou").(string))
+	log.Infof("Reading AD computer object")
 
-	computer, err := api.getComputer(dn, []string{"description"})
+	api := meta.(APIInterface)
+
+	computer, err := api.getComputer(d.Get("name").(string))
 	if err != nil {
-		log.Errorf("Error while reading ad computer object %s: %s", dn, err)
-		return err
+		return fmt.Errorf("resourceADComputerObjectRead - getComputer - %s", err)
 	}
 
 	if computer == nil {
-		log.Debugf("Computer object %s no longer exists", dn)
+		log.Infof("Computer object %s no longer exists", d.Get("name").(string))
 
 		d.SetId("")
 		return nil
 	}
 
-	d.SetId(dn)
+	d.SetId(strings.ToLower(computer.dn))
 
-	if err := d.Set("description", computer.attributes["description"][0]); err != nil {
-		log.Errorf("Error while setting ad object's %s description: %s", dn, err)
-		return err
+	if err := d.Set("description", computer.description); err != nil {
+		return fmt.Errorf("resourceADComputerObjectRead - set description - failed to set description: %s", err)
 	}
 
 	return nil
@@ -96,31 +89,19 @@ func resourceADComputerObjectRead(d *schema.ResourceData, meta interface{}) erro
 
 // resourceADComputerObjectUpdate is 'update' part of terraform CRUD functions for ad provider
 func resourceADComputerObjectUpdate(d *schema.ResourceData, meta interface{}) error {
-	api := meta.(APIInterface)
-	dn := fmt.Sprintf("cn=%s,%s", d.Get("name").(string), d.Get("ou").(string))
+	log.Infof("Updating AD computer object")
 
-	// check ou
-	if d.HasChange("ou") {
-		old, _ := d.GetChange("ou")
-		dn = fmt.Sprintf("cn=%s,%s", d.Get("name").(string), old.(string))
-	}
+	api := meta.(APIInterface)
+
+	oldOU, newOU := d.GetChange("ou")
 
 	// let's try to update in parts
 	d.Partial(true)
 
 	// check description
 	if d.HasChange("description") {
-		desc := []string{}
-		if d.Get("description").(string) != "" {
-			desc = append(desc, d.Get("description").(string))
-		}
-
-		attributes := map[string][]string{
-			"description": desc,
-		}
-
-		if err := api.updateComputerAttributes(dn, nil, attributes, nil); err != nil {
-			return err
+		if err := api.updateComputerDescription(d.Get("name").(string), oldOU.(string), d.Get("description").(string)); err != nil {
+			return fmt.Errorf("resourceADComputerObjectUpdate - update description - %s", err)
 		}
 
 		d.SetPartial("description")
@@ -128,14 +109,13 @@ func resourceADComputerObjectUpdate(d *schema.ResourceData, meta interface{}) er
 
 	// check ou
 	if d.HasChange("ou") {
-		// update ou
-		if err := api.updateComputerOU(dn, d.Get("name").(string), d.Get("ou").(string)); err != nil {
-			return err
+		if err := api.updateComputerOU(d.Get("name").(string), oldOU.(string), newOU.(string)); err != nil {
+			return fmt.Errorf("resourceADComputerObjectUpdate - update ou - %s", err)
 		}
 	}
 
 	d.Partial(false)
-	d.SetId(dn)
+	d.SetId(strings.ToLower(fmt.Sprintf("cn=%s,%s", d.Get("name").(string), d.Get("ou").(string))))
 
 	// read current ad data to avoid drift
 	return resourceADComputerObjectRead(d, meta)
@@ -143,11 +123,10 @@ func resourceADComputerObjectUpdate(d *schema.ResourceData, meta interface{}) er
 
 // resourceADComputerObjectDelete is 'delete' part of terraform CRUD functions for ad provider
 func resourceADComputerObjectDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Infof("Deleting AD computer object")
+
 	api := meta.(APIInterface)
 
-	// creating computer dn
-	dn := fmt.Sprintf("cn=%s,%s", d.Get("name").(string), d.Get("ou").(string))
-
 	// call ad to delete the computer object, no error means that object was deleted successfully
-	return api.deleteComputer(dn)
+	return api.deleteComputer(d.Get("name").(string), d.Get("ou").(string))
 }

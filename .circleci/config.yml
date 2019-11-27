@@ -52,10 +52,18 @@ jobs:
     working_directory: << pipeline.parameters.workingdir >>
     steps:
       - checkout
-      - run: go get -v -t -d ./...
-      - run: make tools
-      - run: make fmtcheck
-      - run: make lint
+      - run:
+          name: GO get
+          command: go get -v -t -d ./...
+      - run:
+          name: Tools
+          command: make tools
+      - run:
+          name: Format Check
+          command: make fmtcheck
+      - run:
+          name: Linter
+          command: make lint
 
   # golang unit tests #########################################################
   unit-test:
@@ -70,7 +78,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: go get
+          name: GO get
           command: go get -v -t -d ./...
       - run:
           name: Prepare tests
@@ -106,7 +114,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: go get
+          name: GO get
           command: go get -v -t -d ./...
       - run:
           name: Install utils

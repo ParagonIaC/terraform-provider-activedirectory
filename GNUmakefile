@@ -57,4 +57,7 @@ tools:
 	GO111MODULE=on go install github.com/bflad/tfproviderlint/cmd/tfproviderlint
 	GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint
 
-.PHONY: default build fmt lint tools
+compress:
+	(which /usr/bin/upx > /dev/null && find dist/*/* | xargs -I{} -n1 -P 4 /usr/bin/upx --brute "{}") || echo "not using upx for binary compression"
+
+.PHONY: default build fmt lint tools compress

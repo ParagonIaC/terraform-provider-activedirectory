@@ -147,9 +147,9 @@ jobs:
       - run:
           name: GO get
           command: go get -v -t -d ./...
-      # - run:
-      #     name: Release
-      #     command: curl -sL https://git.io/goreleaser | bash
+      - run:
+          name: Release
+          command: curl -sL https://git.io/goreleaser | bash
           # env:
             # GITHUB_TOKEN: ${{ GITHUB_TOKEN }}
 

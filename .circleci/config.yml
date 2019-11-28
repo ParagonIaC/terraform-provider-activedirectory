@@ -179,5 +179,7 @@ workflows:
             - unit-test
             - integration-test
           filters: 
+            branches:
+              ignore: /.*/
             tags:
               only: /^v.*/

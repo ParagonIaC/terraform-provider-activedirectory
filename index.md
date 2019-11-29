@@ -1,16 +1,11 @@
 ---
 layout: default
 ---
-
-# Terraform Provider - Active Directory
-
-[![GolangCI](https://golangci.com/badges/github.com/golangci/golangci-lint.svg)](https://golangci.com)
-![CircleCI](https://img.shields.io/circleci/build/github/adlerrobert/terraform-provider-activedirectory?style=flat-square&logo=circleci&label=CircleCI)
-[![codecov](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory/branch/master/graph/badge.svg)](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory)
-[![GitHub license](https://img.shields.io/github/license/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square&cacheSeconds=3600)](https://github.com/adlerrobert/terraform-provider-activedirectory/blob/master/LICENSE)
-[![GitHub release](https://img.shields.io/github/release/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square)](https://GitHub.com/adlerrobert/terraform-provider-activedirectory/releases/)
-
-This is a Terraform  Provider to work with Active Directory.
+[![GolangCI](https://golangci.com/badges/github.com/golangci/golangci-lint.svg?style=for-the-badge)](https://golangci.com)
+![CircleCI](https://img.shields.io/circleci/build/github/adlerrobert/terraform-provider-activedirectory?style=for-the-badge&logo=circleci&label=CircleCI)(https://img.shields.io/circleci/build/github/adlerrobert/terraform-provider-activedirectory)
+[![codecov](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory/branch/master/graph/badge.svg?style=for-the-badge)](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory)
+[![GitHub license](https://img.shields.io/github/license/adlerrobert/terraform-provider-activedirectory.svg?style=for-the-badge)](https://github.com/adlerrobert/terraform-provider-activedirectory/blob/master/LICENSE)
+[![GitHub release](https://img.shields.io/github/release/adlerrobert/terraform-provider-activedirectory.svg?style=for-the-badge)](https://GitHub.com/adlerrobert/terraform-provider-activedirectory/releases/)
 
 This provider currently supports only computer objects, but more active directory resources are planned. Please feel free to contribute.
 

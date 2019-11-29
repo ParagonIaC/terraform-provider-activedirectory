@@ -7,15 +7,15 @@ title: Your awesome title
 email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
   Description.
-baseurl: "/"
+baseurl: ""
 url: "https://adlerrobert.github.io/terraform-provider-activedirectory/" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  adlerrobert
 
 # Build settings
 markdown: kramdown
 theme: jekyll-theme-cayman
-# plugins:
-#   - jekyll-feed
+plugins:
+  - jekyll-feed
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
@@ -25,6 +25,15 @@ exclude:
   - dist
   - scripts
   - vendor
+  - CHANGELOG.md
+  - CODE_OF_CONDUCT.md
+  - CONTRIBUTING.md
+  - GNUmakefile
+  - go.mod
+  - go.sum
+  - LICENSE
+  - main.go
+  - README.md
 #   - Gemfile
 #   - Gemfile.lock
 #   - node_modules

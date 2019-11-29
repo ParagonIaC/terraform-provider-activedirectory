@@ -3,41 +3,12 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: Your awesome title
-email: your-email@example.com
-description: >- # this means to ignore newlines until "baseurl:"
-  Description.
-baseurl: "terraform-provider-activedirectory/"
-url: "https://adlerrobert.github.io" # the base hostname & protocol for your site, e.g. http://example.com
+title: Active Directory Provider
+email: adler.robert@gmx.de
+description: "This is a community-driven Terraform provider for Microsoft Active Directory."
+baseurl: ""
+url: "https://adlerrobert.github.io/terraform-provider-activedirectory" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  adlerrobert
 
-# Build settings
-# markdown: kramdown
+markdown: kramdown
 theme: jekyll-theme-cayman
-plugins:
-  - jekyll-feed
-
-# Exclude from processing.
-# The following items will not be processed, by default. Create a custom list
-# to override the default setting.
-exclude:
-  - activedirectory
-  - dist
-  - scripts
-  - vendor
-  - CHANGELOG.md
-  - CODE_OF_CONDUCT.md
-  - CONTRIBUTING.md
-  - GNUmakefile
-  - go.mod
-  - go.sum
-  - LICENSE
-  - main.go
-  - README.md
-#   - Gemfile
-#   - Gemfile.lock
-#   - node_modules
-#   - vendor/bundle/
-#   - vendor/cache/
-#   - vendor/gems/
-#   - vendor/ruby/

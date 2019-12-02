@@ -1,3 +1,8 @@
+---
+layout: default
+title: Active Directory Provider
+back: yes
+---
 # Contributing to Terraform - Active Directory Provider
 
 **First:** if you're unsure or afraid of _anything_, ask for help! You can
@@ -44,6 +49,8 @@ We welcome issues of all kinds including feature requests, bug reports, and
 general questions. Below you'll find checklists with guidelines for well-formed
 issues of each type.
 
+<sup>[back to top](#top)</sup>
+
 #### [Bug Reports](https://github.com/adlerrobert/terraform-provider-activedirectory/issues/new?template=---bug-report.md)
 
  - [ ] __Test against latest release__: Make sure you test against the latest
@@ -62,6 +69,8 @@ issues of each type.
    create a [gist](https://gist.github.com) of the *entire* generated crash log
    for us to look at. Double check no sensitive items were in the log.
 
+<sup>[back to top](#top)</sup>
+
 #### [Feature Requests](https://github.com/adlerrobert/terraform-provider-activedirectory/issues/new?labels=enhancement&template=---feature-request.md)
 
  - [ ] __Search for possible duplicate requests__: It's helpful to keep requests
@@ -74,12 +83,16 @@ issues of each type.
    out the reason why the feature would be important and how it would benefit
    Terraform users.
 
+<sup>[back to top](#top)</sup>
+
 #### [Questions](https://github.com/adlerrobert/terraform-provider-activedirectory/issues/new?labels=question&template=---question.md)
 
  - [ ] __Search for answers in Terraform documentation__: We're happy to answer
    questions in GitHub Issues. Oftentimes Question issues result in documentation updates
    to help future users, so if you don't find an answer, you can give us
    pointers for where you'd expect to see it in the docs.
+
+<sup>[back to top](#top)</sup>
 
 ### Issue Lifecycle
 
@@ -99,6 +112,8 @@ issues of each type.
    tracked elsewhere or non-actionable. The issue is still indexed and
    available for future viewers, or can be re-opened if necessary.
 
+<sup>[back to top](#top)</sup>
+
 ## Pull Requests
 
 We appreciate direct contributions to the provider codebase. Here's what to
@@ -110,6 +125,8 @@ expect:
  * Pull requests that don't follow the guidelines will be commented with what
   they're missing. The person who submits the pull request or another community
   member will need to address those requests before they move forward.
+
+<sup>[back to top](#top)</sup>
 
 ### Pull Request Lifecycle
 
@@ -139,13 +156,19 @@ expect:
 1. In some cases, we might decide that a PR should be closed without merging.
    We'll make sure to provide clear reasoning when this happens.
 
+<sup>[back to top](#top)</sup>
+
 ### Checklists for Contribution
 
 There are several different kinds of contribution, each of which has its own
 standards for a speedy review. The following sections describe guidelines for
 each type of contribution.
 
+<sup>[back to top](#top)</sup>
+
 #### Documentation Update (WIP)
+
+<sup>[back to top](#top)</sup>
 
 #### Enhancement/Bugfix to a Resource
 
@@ -181,6 +204,8 @@ guidelines.
    folder. This is to avoid conflicts as the vendor versions tend to be fast-
    moving targets. We will plan to merge the PR with this change first.
 
+<sup>[back to top](#top)</sup>
+
 #### New Resource
 
 Implementing a new resource is a good way to learn more about how Terraform
@@ -213,6 +238,8 @@ guidelines.
    folder. This is to avoid conflicts as the vendor versions tend to be fast-
    moving targets. We will plan to merge the PR with this change first.
 
+<sup>[back to top](#top)</sup>
+
 ### Common Review Items
 
 The Terraform Active Directory Provider follows common practices to ensure consistent and
@@ -223,12 +250,16 @@ quality. For any guidelines listed, contributors are encouraged to ask any
 questions and community reviewers are encouraged to provide review suggestions
 based on these guidelines to speed up the review and merge process.
 
+<sup>[back to top](#top)</sup>
+
 #### Go Coding Style
 
 The following Go language resources provide common coding preferences that may be referenced during review, if not automatically handled by the project's linting tools.
 
 - [Effective Go](https://golang.org/doc/effective_go.html)
 - [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+
+<sup>[back to top](#top)</sup>
 
 #### Resource Contribution Guidelines
 
@@ -265,6 +296,8 @@ The below are style-based items that _may_ be noted during review and are recomm
 - [ ] __Skips Timestamp Attributes__: Generally, creation and modification dates from the API should be omitted from the schema.
 - [ ] __Skips Error() Call__: Error objects do not need to have `Error()` called.
 
+<sup>[back to top](#top)</sup>
+
 #### Acceptance Testing Guidelines
 
 The below are required items that will be noted during submission review and prevent immediate merging:
@@ -276,17 +309,23 @@ The below are required items that will be noted during submission review and pre
 - [ ] __Uses fmt.Sprintf()__: Test configurations preferably should to be separated into their own functions (typically named `testAccADRESOURCE}Config{PURPOSE}`) that call [`fmt.Sprintf()`](https://golang.org/pkg/fmt/#Sprintf) for variable injection or a string `const` for completely static configurations. Test configurations should avoid `var` or other variable injection functionality such as [`text/template`](https://golang.org/pkg/text/template/).
 - [ ] __Uses Randomized Infrastructure Naming (WIP)__: Test configurations that utilize resources where a unique name is required should generate a random name. Typically this is created via `rName := acctest.RandomWithPrefix("tf-acc-test")` in the acceptance test function before generating the configuration.
 
+<sup>[back to top](#top)</sup>
+
 ### Writing Acceptance Tests
 
 Terraform includes an acceptance test harness that does most of the repetitive
 work involved in testing a resource. For additional information about testing
 Terraform Providers, see the [Extending Terraform documentation](https://www.terraform.io/docs/extend/testing/index.html).
 
+<sup>[back to top](#top)</sup>
+
 #### Acceptance Tests Often Cost Money to Run
 
 Because acceptance tests create real resources, they often cost money to run.
 Because the resources only exist for a short period of time, the total amount
 of money required is usually a relatively small.
+
+<sup>[back to top](#top)</sup>
 
 #### Running an Acceptance Test
 
@@ -304,6 +343,8 @@ export AD_BIND_USER=...
 export AD_BIND_PASSWORD=...
 export AD_COMPUTER_TEST_BASE_OU=...
 ```
+
+<sup>[back to top](#top)</sup>
 
 #### Writing an Acceptance Test
 
@@ -359,3 +400,5 @@ func TestAccADComputer_basic(t *testing.T) {
 
 [website]: https://github.com/adlerrobert/terraform-provider-activedirectory/tree/master/website
 [acctests]: https://github.com/hashicorp/terraform#acceptance-tests
+
+<sup>[back to top](#top)</sup>

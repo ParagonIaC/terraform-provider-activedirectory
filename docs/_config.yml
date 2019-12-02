@@ -1,0 +1,14 @@
+# Site settings
+# These are used to personalize your new site. If you look in the HTML files,
+# you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
+# You can create any custom variable you would like, and they will be accessible
+# in the templates via {{ site.myvariable }}.
+title: Active Directory Provider
+email: adler.robert@gmx.de
+description: "This is a community-driven Terraform provider for Microsoft Active Directory."
+# baseurl: "//"
+url: "https://adlerrobert.github.io/terraform-provider-activedirectory/" # the base hostname & protocol for your site, e.g. http://example.com
+github_username:  adlerrobert
+
+markdown: kramdown
+theme: jekyll-theme-cayman

@@ -1,18 +1,18 @@
 ---
 layout: default
 ---
-[![CircleCI](https://img.shields.io/circleci/build/github/adlerrobert/terraform-provider-activedirectory?style=for-the-badge&logo=circleci&label=BUILDING)](https://circleci.com/gh/adlerrobert/terraform-provider-activedirectory)
+[![CircleCI](https://img.shields.io/circleci/build/github/adlerrobert/terraform-provider-activedirectory?style=for-the-badge&label=BUILDING)](https://circleci.com/gh/adlerrobert/terraform-provider-activedirectory)
 [![Codecov](https://img.shields.io/codecov/c/gh/adlerrobert/terraform-provider-activedirectory?style=for-the-badge)](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory)
 [![GitHub license](https://img.shields.io/github/license/adlerrobert/terraform-provider-activedirectory.svg?style=for-the-badge)](https://github.com/adlerrobert/terraform-provider-activedirectory/blob/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/adlerrobert/terraform-provider-activedirectory.svg?style=for-the-badge)](https://GitHub.com/adlerrobert/terraform-provider-activedirectory/releases/)
-
-For general information about Terraform, visit the [official website][1] and the [GitHub project page][3]. More information about Terraform Providers can be found on the [official provider website][2].
 
 The following Active Directory object types are supported:
 * computer
 * organizational unit
 
 More Active Directory resources are planned. Please feel free to contribute.
+
+For general information about Terraform, visit the [official website][1] and the [GitHub project page][3]. More information about Terraform Providers can be found on the [official provider website][2].
 
 [1]: https://terraform.io/
 [2]: https://www.terraform.io/docs/providers/index.html

@@ -1,3 +1,6 @@
+---
+layout: default
+---
 # Contributing to Terraform - Active Directory Provider
 
 **First:** if you're unsure or afraid of _anything_, ask for help! You can

@@ -6,13 +6,69 @@ layout: default
 [![GitHub license](https://img.shields.io/github/license/adlerrobert/terraform-provider-activedirectory.svg?style=for-the-badge)](https://github.com/adlerrobert/terraform-provider-activedirectory/blob/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/adlerrobert/terraform-provider-activedirectory.svg?style=for-the-badge)](https://GitHub.com/adlerrobert/terraform-provider-activedirectory/releases/)
 
-The following Active Directory object types are supported:
+# Table of Content
+
+* [Overview](#Overview)
+* [Using the Provider](#Using the Provider)
+* [Examples](#Examples)
+* [Developing the Provider](#Developing the Provider)
+  * [Requirements](#Requirements)
+  * [Environment](#Environment)
+  * [Testing the Provider](#Testing the Provider)
+* [Contributing](#Contributing)
+
+# Overview
+
+This is a community-driven Terraform provider for Microsoft Active Directory. The following Active Directory object types are currently supported:
 * computer
 * organizational unit
 
 More Active Directory resources are planned. Please feel free to contribute.
 
-* [Provider Developing](/terraform-provider-activedirectory/developing)
+# Using the Provider
+
+To instead use a custom-built provider in your Terraform environment (e.g. the provider binary from the build instructions below), follow the instructions to [install it as a plugin.](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin) After placing it into your plugins directory, run `terraform init` to initialize it.
+
+The Terraform Active Directory Provider is used to interact with Microsoft Active Directory. Thus, the provider needs to be configured with the proper credentials before it can be used.
+
+# Example
+```hcl
+# Configure the AD Provider
+provider "activedirectory" {
+  host     = "ad.example.org"
+  domain   = "example.org"
+  use_tls  = false
+  user     = "admin"
+  password = "password"
+}
+
+# Add computer to Active Directory
+resource "activedirectory_computer" "test_computer" {
+  name           = "TerraformComputer"                      # update will force destroy and new
+  ou             = "CN=Computers,DC=example,DC=org"         # can be updated
+  description    = "terraform sample server"                # can be updated
+}
+
+# Add ou to Active Directory
+resource "activedirectory_ou" "test_ou" {
+  name           = "TerraformOU"                            # can be updated
+  base_ou        = "OU=Test,CN=Computers,DC=example,DC=org" # can be updated
+  description    = "terraform sample ou"                    # can be updated
+}
+```
+
+# Provider Development
+
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (please check the [requirements](#Requirements) before proceeding).
+
+_**Note:**_ This project uses [Go Modules](https://blog.golang.org/using-go-modules) making it safe to work with it outside of your existing [GOPATH](http://golang.org/doc/code.html#GOPATH). The instructions that follow assume a directory in your home directory outside of the standard GOPATH (i.e `$HOME/development/terraform-providers/`).
+
+## Requirements
+
+- [Terraform](https://www.terraform.io/downloads.html) 0.12+
+- [Go](https://golang.org/doc/install) 1.13 (to build the provider plugin)
+
+## Environment
 
 Clone repository to: `$HOME/development/terraform-providers/`
 
@@ -37,41 +93,6 @@ $ $GOPATH/bin/terraform-provider-activedirectory
 ...
 ```
 
-## Using the Provider
-To use a released provider in your Terraform environment, run [`terraform init`](https://www.terraform.io/docs/commands/init.html) and Terraform will automatically install the provider. To specify a particular provider version when installing released providers, see the [Terraform documentation on provider versioning](https://www.terraform.io/docs/configuration/providers.html#version-provider-versions).
-
-To instead use a custom-built provider in your Terraform environment (e.g. the provider binary from the build instructions above), follow the instructions to [install it as a plugin.](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin) After placing it into your plugins directory, run `terraform init` to initialize it.
-
-The Active Directory provider is use to interact with Microsoft Active Directory. The provider needs to be configured with the proper credentials before it can be used.
-
-Currently the provider only supports Active Directory Computer objects.
-
-### Example
-```hcl
-# Configure the AD Provider
-provider "activedirectory" {
-  host     = "ad.example.org"
-  domain   = "example.org"
-  use_tls  = true
-  user     = "admin"
-  password = "admin"
-}
-
-# Add computer to Active Directory
-resource "activedirectory_computer" "test_computer" {
-  name           = "TerraformComputer"                      # update will force destroy and new
-  ou             = "CN=Computers,DC=example,DC=org"         # can be updated
-  description    = "terraform sample server"                # can be updated
-}
-
-# Add ou to Active Directory
-resource "activedirectory_ou" "test_ou" {
-  name           = "TerraformOU"                            # can be updated
-  base_ou        = "OU=Test,CN=Computers,DC=example,DC=org" # can be updated
-  description    = "terraform sample ou"                    # can be updated
-}
-```
-
 ## Testing the Provider
 In order to test the provider, you can run `make test`. This will run so-called unit tests.
 ```sh
@@ -79,7 +100,8 @@ $ make test
 ```
 
 In order to run the full suite of Acceptance tests, run `make testacc`. Please make sure that a working Domain Controller is reachable and you have the needed permissions
-*Note:* Acceptance tests create real resources! Please read [Running an Acceptance Test](https://github.com/adlerrobert/terraform-provider-axctivedirectory/blob/master/.github/CONTRIBUTING.md#running-an-acceptance-test) in the contribution guidelines for more information on usage.
+
+_**Note:**_ Acceptance tests create real resources! Please read [Running an Acceptance Test](/CONTRIBUTING.html#running-an-acceptance-test) in the contribution guidelines for more information on usage.
 
 ```sh
 $ make testacc
@@ -90,16 +112,16 @@ $ make testacc
  | Variable | Description | Example | Default | Required |
  | -------- | ----------- | ------- | ------- | :------: |
  | AD_HOST | Domain Controller | dc.example.org | - | yes |
- | AD_PORT | LDAP Port - 389 TCP | 389 | 389 | no |
+ | AD_PORT | LDAP Port | 389 | 389 | no |
  | AD_DOMAIN | Domain | eample.org | - | yes |
  | AD_USE_TLS | Use secure connection | false | true | no |
- | AD_USER | Admin user DN | admin | - | yes |
+ | AD_USER | Admin user name or DN | admin | - | yes |
  | AD_PASSWORD | Password of the admin user | secret | - | yes |
  | AD_TEST_BASE_OU | OU for the test cases | ou=Tests,dc=example,dc=org | - | yes (tests only) |
 
-## Contributing
+# Contributing
 Terraform is the work of thousands of contributors. We appreciate your help!
 
-To contribute, please read the contribution guidelines: [Contributing to Terraform - Active Directory Provider](CONTRIBUTING.md)
+To contribute, please read the contribution guidelines: [Contributing to Terraform - Active Directory Provider](/CONTRIBUTING.html)
 
 Issues on GitHub are intended to be related to bugs or feature requests with provider codebase. See https://www.terraform.io/docs/extend/community/index.html for a list of community resources to ask questions about Terraform.

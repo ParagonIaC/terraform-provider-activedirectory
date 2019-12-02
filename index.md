@@ -12,21 +12,7 @@ The following Active Directory object types are supported:
 
 More Active Directory resources are planned. Please feel free to contribute.
 
-For general information about Terraform, visit the [official website][1] and the [GitHub project page][3]. More information about Terraform Providers can be found on the [official provider website][2].
-
-[1]: https://terraform.io/
-[2]: https://www.terraform.io/docs/providers/index.html
-[3]: https://github.com/hashicorp/terraform
-
-## Requirements
-
-- [Terraform](https://www.terraform.io/downloads.html) 0.12+
-- [Go](https://golang.org/doc/install) 1.13 (to build the provider plugin)
-
-## Developing the Provider
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (please check the [requirements](https://github.com/adlerrobert/terraform-provider-activedirectory#requirements) before proceeding).
-
-*Note:* This project uses [Go Modules](https://blog.golang.org/using-go-modules) making it safe to work with it outside of your existing [GOPATH](http://golang.org/doc/code.html#GOPATH). The instructions that follow assume a directory in your home directory outside of the standard GOPATH (i.e `$HOME/development/terraform-providers/`).
+* [Provider Developing](/terraform-provider-activedirectory/developing)
 
 Clone repository to: `$HOME/development/terraform-providers/`
 

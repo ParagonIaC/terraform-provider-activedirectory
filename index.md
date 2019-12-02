@@ -1,7 +1,7 @@
 ---
 layout: default
 ---
-[![CircleCI](https://img.shields.io/circleci/build/github/adlerrobert/terraform-provider-activedirectory?style=for-the-badge&logo=circleci&label=CircleCI)](https://circleci.com/gh/adlerrobert/terraform-provider-activedirectory)
+[![CircleCI](https://img.shields.io/circleci/build/github/adlerrobert/terraform-provider-activedirectory?style=for-the-badge&logo=circleci&label=BUILDING)](https://circleci.com/gh/adlerrobert/terraform-provider-activedirectory)
 [![Codecov](https://img.shields.io/codecov/c/gh/adlerrobert/terraform-provider-activedirectory?style=for-the-badge)](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory)
 [![GitHub license](https://img.shields.io/github/license/adlerrobert/terraform-provider-activedirectory.svg?style=for-the-badge)](https://github.com/adlerrobert/terraform-provider-activedirectory/blob/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/adlerrobert/terraform-provider-activedirectory.svg?style=for-the-badge)](https://GitHub.com/adlerrobert/terraform-provider-activedirectory/releases/)

@@ -1,10 +1,10 @@
 # Terraform Provider - Active Directory
 
 [![GolangCI](https://golangci.com/badges/github.com/golangci/golangci-lint.svg)](https://golangci.com)
-[![CircleCI](https://img.shields.io/circleci/build/github/adlerrobert/terraform-provider-activedirectory?style=flat-square&label=building)](https://circleci.com/gh/adlerrobert/terraform-provider-activedirectory)
-[![Codecov](https://img.shields.io/codecov/c/gh/adlerrobert/terraform-provider-activedirectory?style=flat-square)](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory)
-[![GitHub license](https://img.shields.io/github/license/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square)](https://github.com/adlerrobert/terraform-provider-activedirectory/blob/master/LICENSE)
-[![GitHub release](https://img.shields.io/github/release/adlerrobert/terraform-provider-activedirectory.svg?style=flat-square)](https://GitHub.com/adlerrobert/terraform-provider-activedirectory/releases/)
+[![CircleCI](https://img.shields.io/circleci/build/github/ParagonIaC/terraform-provider-activedirectory?style=flat-square&label=building)](https://circleci.com/gh/ParagonIaC/terraform-provider-activedirectory)
+[![Codecov](https://img.shields.io/codecov/c/gh/ParagonIaC/terraform-provider-activedirectory?style=flat-square)](https://codecov.io/gh/ParagonIaC/terraform-provider-activedirectory)
+[![GitHub license](https://img.shields.io/github/license/ParagonIaC/terraform-provider-activedirectory.svg?style=flat-square)](https://github.com/ParagonIaC/terraform-provider-activedirectory/blob/master/LICENSE)
+[![GitHub release](https://img.shields.io/github/release/ParagonIaC/terraform-provider-activedirectory.svg?style=flat-square)](https://GitHub.com/ParagonIaC/terraform-provider-activedirectory/releases/)
 
 <img alt="HashiCorp Terraform" src="/docs/assets/img/terraform.png" width="15%"><img alt="Microsoft Active Directory" src="/docs/assets/img/active-directory.png" width="15%">
 
@@ -17,7 +17,7 @@ For general information about Terraform, visit the [official website][3] and the
 [3]: https://terraform.io/
 [4]: https://github.com/hashicorp/terraform
 
-More information can be found on the Active Directory Provider [GitHub pages](https://adlerrobert.github.io/terraform-provider-activedirectory/).
+More information can be found on the Active Directory Provider [GitHub pages](https://ParagonIaC.github.io/terraform-provider-activedirectory/).
 
 ## Simple Usage Example
 ```hcl

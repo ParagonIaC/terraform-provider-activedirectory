@@ -1,4 +1,4 @@
-module github.com/adlerrobert/terraform-provider-activedirectory
+module github.com/ParagonIaC/terraform-provider-activedirectory
 
 go 1.13
 

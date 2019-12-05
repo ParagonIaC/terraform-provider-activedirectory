@@ -1,10 +1,10 @@
 ---
 layout: default
 ---
-[![CircleCI](https://img.shields.io/circleci/build/github/adlerrobert/terraform-provider-activedirectory?style=for-the-badge&label=BUILDING)](https://circleci.com/gh/adlerrobert/terraform-provider-activedirectory)
-[![Codecov](https://img.shields.io/codecov/c/gh/adlerrobert/terraform-provider-activedirectory?style=for-the-badge)](https://codecov.io/gh/adlerrobert/terraform-provider-activedirectory)
-[![GitHub license](https://img.shields.io/github/license/adlerrobert/terraform-provider-activedirectory.svg?style=for-the-badge)](https://github.com/adlerrobert/terraform-provider-activedirectory/blob/master/LICENSE)
-[![GitHub release](https://img.shields.io/github/release/adlerrobert/terraform-provider-activedirectory.svg?style=for-the-badge)](https://GitHub.com/adlerrobert/terraform-provider-activedirectory/releases/)
+[![CircleCI](https://img.shields.io/circleci/build/github/ParagonIaC/terraform-provider-activedirectory?style=for-the-badge&label=BUILDING)](https://circleci.com/gh/ParagonIaC/terraform-provider-activedirectory)
+[![Codecov](https://img.shields.io/codecov/c/gh/ParagonIaC/terraform-provider-activedirectory?style=for-the-badge)](https://codecov.io/gh/ParagonIaC/terraform-provider-activedirectory)
+[![GitHub license](https://img.shields.io/github/license/ParagonIaC/terraform-provider-activedirectory.svg?style=for-the-badge)](https://github.com/ParagonIaC/terraform-provider-activedirectory/blob/master/LICENSE)
+[![GitHub release](https://img.shields.io/github/release/ParagonIaC/terraform-provider-activedirectory.svg?style=for-the-badge)](https://GitHub.com/ParagonIaC/terraform-provider-activedirectory/releases/)
 
 <div markdown="1" style="float: right; display: flex; flex-flow: column wrap; width: 8rem;">
 
@@ -90,7 +90,7 @@ Clone repository to: `$HOME/development/terraform-providers/`
 
 ```sh
 $ mkdir -p $HOME/development/terraform-providers/; cd $HOME/development/terraform-providers/
-$ git clone git@github.com:adlerrobert/terraform-provider-activedirectory
+$ git clone git@github.com:ParagonIaC/terraform-provider-activedirectory
 ...
 ```
 

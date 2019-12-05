@@ -51,7 +51,7 @@ issues of each type.
 
 <sup>[back to top](#top)</sup>
 
-#### [Bug Reports](https://github.com/adlerrobert/terraform-provider-activedirectory/issues/new?template=---bug-report.md)
+#### [Bug Reports](https://github.com/ParagonIaC/terraform-provider-activedirectory/issues/new?template=---bug-report.md)
 
  - [ ] __Test against latest release__: Make sure you test against the latest
    released version. It is possible we already fixed the bug you're experiencing.
@@ -59,7 +59,7 @@ issues of each type.
  - [ ] __Search for possible duplicate reports__: It's helpful to keep bug
    reports consolidated to one thread, so do a quick search on existing bug
    reports to check if anybody else has reported the same thing. You can [scope
-      searches by the label "bug"](https://github.com/adlerrobert/terraform-provider-activedirectory/issues?q=is%3Aopen+is%3Aissue+label%3Abug) to help narrow things down.
+      searches by the label "bug"](https://github.com/ParagonIaC/terraform-provider-activedirectory/issues?q=is%3Aopen+is%3Aissue+label%3Abug) to help narrow things down.
 
  - [ ] __Include steps to reproduce__: Provide steps to reproduce the issue,
    along with your `.tf` files, with secrets removed, so we can try to
@@ -71,12 +71,12 @@ issues of each type.
 
 <sup>[back to top](#top)</sup>
 
-#### [Feature Requests](https://github.com/adlerrobert/terraform-provider-activedirectory/issues/new?labels=enhancement&template=---feature-request.md)
+#### [Feature Requests](https://github.com/ParagonIaC/terraform-provider-activedirectory/issues/new?labels=enhancement&template=---feature-request.md)
 
  - [ ] __Search for possible duplicate requests__: It's helpful to keep requests
    consolidated to one thread, so do a quick search on existing requests to
    check if anybody else has reported the same thing. You can [scope searches by
-      the label "enhancement"](https://github.com/adlerrobert/terraform-provider-activedirectory/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement) to help narrow things down.
+      the label "enhancement"](https://github.com/ParagonIaC/terraform-provider-activedirectory/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement) to help narrow things down.
 
  - [ ] __Include a use case description__: In addition to describing the
    behavior of the feature you'd like to see added, it's helpful to also lay
@@ -85,7 +85,7 @@ issues of each type.
 
 <sup>[back to top](#top)</sup>
 
-#### [Questions](https://github.com/adlerrobert/terraform-provider-activedirectory/issues/new?labels=question&template=---question.md)
+#### [Questions](https://github.com/ParagonIaC/terraform-provider-activedirectory/issues/new?labels=question&template=---question.md)
 
  - [ ] __Search for answers in Terraform documentation__: We're happy to answer
    questions in GitHub Issues. Oftentimes Question issues result in documentation updates
@@ -398,7 +398,7 @@ func TestAccADComputer_basic(t *testing.T) {
 }
 ```
 
-[website]: https://github.com/adlerrobert/terraform-provider-activedirectory/tree/master/website
+[website]: https://github.com/ParagonIaC/terraform-provider-activedirectory/tree/master/website
 [acctests]: https://github.com/hashicorp/terraform#acceptance-tests
 
 <sup>[back to top](#top)</sup>

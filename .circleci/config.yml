@@ -10,7 +10,7 @@ parameters:
 
   workingdir:
     type: string
-    default: "/go/src/github.com/adlerrobert/terraform-provider-activedirectory"
+    default: "/go/src/github.com/ParagonIaC/terraform-provider-activedirectory"
   
   testdir:
     type: string
@@ -68,7 +68,7 @@ jobs:
           name: Linter
           command: make lint
       - persist_to_workspace:
-          root: /go/src/github.com/adlerrobert
+          root: /go/src/github.com/ParagonIaC
           paths:
             - terraform-provider-activedirectory
 
@@ -82,7 +82,7 @@ jobs:
 
     steps:
       - attach_workspace:
-          at: /go/src/github.com/adlerrobert
+          at: /go/src/github.com/ParagonIaC
       - run:
           name: Prepare tests
           command: mkdir -p << pipeline.parameters.testdir >>

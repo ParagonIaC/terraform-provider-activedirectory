@@ -7,7 +7,7 @@ title: Active Directory Provider
 email: adler.robert@gmx.de
 description: "This is a community-driven Terraform provider for Microsoft Active Directory."
 # baseurl: "//"
-url: "https://adlerrobert.github.io/terraform-provider-activedirectory/" # the base hostname & protocol for your site, e.g. http://example.com
+url: "https://ParagonIaC.github.io/terraform-provider-activedirectory/" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  adlerrobert
 
 markdown: kramdown

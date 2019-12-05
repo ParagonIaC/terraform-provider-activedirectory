@@ -5,7 +5,7 @@
 
 Relates OR Closes #0000
 
-Release note for [CHANGELOG](https://github.com/adlerrobert/terraform-provider-activedirectory/blob/master/CHANGELOG.md):
+Release note for [CHANGELOG](https://github.com/ParagonIaC/terraform-provider-activedirectory/blob/master/CHANGELOG.md):
 
 (If change is not user facing, just write "NONE" in the release-note block below.)
 

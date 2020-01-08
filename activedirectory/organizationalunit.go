@@ -106,9 +106,16 @@ func (api *API) moveOU(cn, baseOU, newOU string) error {
 // updates the description of an existing ou object
 func (api *API) updateOUDescription(cn, baseOU, description string) error {
 	log.Infof("Updating description of ou %s under %s", cn, baseOU)
-	return api.updateObject(fmt.Sprintf("ou=%s,%s", cn, baseOU), nil, nil, map[string][]string{
-		"description": {description},
-	}, nil)
+	ou, err := api.getOU(cn, baseOU)
+	if err != nil {
+		return fmt.Errorf("updateOUDescription - talking to active directory failed: %s", err)
+	}
+	req := ldap.NewModifyRequest(ou.dn, nil)
+	req.Replace("description", []string{description})
+	if err := api.client.Modify(req); err != nil {
+		return fmt.Errorf("updateOUDescription - failed to update %s: %s", ou.dn, err)
+	}
+	return nil
 }
 
 // updates the name of an existing ou object
@@ -141,7 +148,7 @@ func (api *API) updateOUName(name, baseOU, newName string) error {
 func (api *API) deleteOU(dn string) error {
 	log.Infof("Deleting ou %s.", dn)
 
-	objects, err := api.searchObject("(objectclass=*)", dn, nil)
+	objects, err := api.searchObject("(objectclass=organizationalUnit)", dn, nil)
 	if err != nil {
 		return fmt.Errorf("deleteOU - failed remove ou %s: %s", dn, err)
 	}

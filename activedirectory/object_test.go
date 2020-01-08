@@ -29,6 +29,25 @@ func createADResult(cntEntries int, attributes []string) *ldap.SearchResult {
 	return result
 }
 
+func createADResultForUsers(names []string, userBase string) *ldap.SearchResult {
+	result := new(ldap.SearchResult)
+	result.Entries = make([]*ldap.Entry, len(names))
+	for i := 0; i < len(names); i++ {
+		result.Entries[i]=createLdapUserEntry(names[i],userBase)
+	}
+	return result
+}
+
+func createLdapUserEntry(userName, userBase string) *ldap.Entry {
+	attributes := make([]*ldap.EntryAttribute, 1)
+	attributes = append(attributes, &ldap.EntryAttribute{Name: "sAMAccountName", Values: []string{userName}})
+	result := &ldap.Entry{
+		DN:         fmt.Sprintf("cn=%s,%s", userName, userBase),
+		Attributes: attributes,
+	}
+	return result
+}
+
 func TestSearchObject(t *testing.T) {
 	numberOfObjects := 2
 	attributes := []string{"cn", "desc"}

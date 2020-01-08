@@ -36,6 +36,19 @@ type APIInterface interface {
 	updateOUName(name, baseOU, newName string) error
 	updateOUDescription(cn, baseOU, description string) error
 	deleteOU(dn string) error
+
+	// group objects
+	getGroupByName(name, base,userBase string, member []string, ignoreMembersUnknownByTerraform bool) (*Group, error)
+	getMembersManagedByTerraform(membersFromLdap []string,membersFromTerraform []string, ignoreMembersUnknownByTerraform bool) []string
+	getGroup(name, baseOU, userBase string, member []string, ignoreMembersUnknownByTerraform bool) (*Group, error)
+	getGroupMemberNames(groupDn, userBase string) ([]string, error)
+	getGroupMemberDNByName(names []string, userBase string) ([]string, error)
+	createGroup(name, baseOU, description, userBase string, member []string, ignoreMembersUnknownByTerraform bool) error
+	updateGroupDescription(cn, baseOU, description string) error
+	updateGroupMembers(cn, baseOU, userBase string, oldMembers, newMembers []string, ignoreMembersUnknownByTerraform bool) error
+	deleteGroup(cn string) error
+	renameGroup(oldName, baseOu, newName string) error
+	moveGroup(newName, oldOU, newOU string) error
 }
 
 // API is the basic struct which should implement the interface

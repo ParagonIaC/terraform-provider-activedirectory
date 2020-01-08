@@ -51,6 +51,20 @@ func getRandomOU(n, m int) string {
 
 	return strings.Join(ou, ",")
 }
+func getRandomGroup(n, m int) string {
+	ou := make([]string, n+m)
+
+	for i := 0; i < n; i++ {
+		ou[i] = fmt.Sprintf("cn=%s", getRandomString(5))
+	}
+
+	for i := 0; i < m; i++ {
+		ou[i+n] = fmt.Sprintf("dc=%s", getRandomString(3))
+	}
+
+	return strings.Join(ou, ",")
+}
+
 
 func TestConnect(t *testing.T) {
 	host := "127.0.0.1"

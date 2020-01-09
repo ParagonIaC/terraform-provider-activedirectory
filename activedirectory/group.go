@@ -17,7 +17,7 @@ type Group struct {
 
 func (api *API) getGroup(name, baseOU, userBase string, member []string, ignoreMembersUnknownByTerraform bool) (*Group, error) {
 	log.Infof("Getting group %s in %s", name, baseOU)
-	attributes := []string{"name", "description"}
+	attributes := []string{"name", "sAMAccaountName", "description"}
 
 	// filter
 	filter := fmt.Sprintf("(&(objectclass=group)(sAMAccountName=%s))", name)
@@ -41,57 +41,48 @@ func (api *API) getGroup(name, baseOU, userBase string, member []string, ignoreM
 		return nil, fmt.Errorf("getGroup - failed to get group members %s in %s: %s", ret[0].dn, userBase, err)
 	}
 	membersMangedByTerraform := api.getMembersManagedByTerraform(membersFromLdap, member, ignoreMembersUnknownByTerraform)
-
+	description := getAttribute("description", ret[0])
 	return &Group{
 		name:        ret[0].attributes["name"][0],
 		dn:          ret[0].dn,
-		description: ret[0].attributes["description"][0],
+		description: description,
 		member:      membersMangedByTerraform,
 	}, nil
 }
-func (api *API) getGroupByName(name, base, userBase string, member []string, ignoreMembersUnknownByTerraform bool) (*Group, error) {
-	attributes := []string{"name", "description"}
-	log.Infof("Searching group member %s in %s", name, base)
-	filter := fmt.Sprintf("(&(objectclass=group)(sAMAccountName=%s))", name)
-	ret, err := api.searchObject(filter, base, attributes)
-	if err != nil {
-		return nil, fmt.Errorf("getGroupByName - failed to search %s in %s: %s", name, base, err)
+func getMembers(ldapObject *Object) []string {
+	for key := range ldapObject.attributes {
+		if key == "member" {
+			return ldapObject.attributes[key]
+		}
 	}
-
-	if len(ret) == 0 {
-		return nil, fmt.Errorf("getGroupByName - member with name '%s' not found: ", name)
+	return []string{}
+}
+func getAttribute(attrName string, ldapObject *Object) string {
+	for key := range ldapObject.attributes {
+		if key == attrName {
+			return ldapObject.attributes[key][0]
+		}
 	}
-
-	if len(ret) > 1 {
-		return nil, fmt.Errorf("getGroupByName - more than one ou object with the same name under the same base ou found")
-	}
-
-	membersFromLdap, err := api.getGroupMemberNames(ret[0].dn, userBase)
-	if err != nil {
-		return nil, fmt.Errorf("getGroupByName - failed to get group members %s in %s: %s", ret[0].dn, userBase, err)
-	}
-	membersMangedByTerraform := api.getMembersManagedByTerraform(membersFromLdap, member, ignoreMembersUnknownByTerraform)
-
-	return &Group{
-		name:        ret[0].attributes["name"][0],
-		dn:          ret[0].dn,
-		description: ret[0].attributes["description"][0],
-		member:      membersMangedByTerraform,
-	}, nil
+	return ""
 }
 
 func (api *API) getMembersManagedByTerraform(membersFromLdap []string, membersFromTerraform []string, ignoreMembersUnknownByTerraform bool) []string {
-	membersMangedByTerrafrom := make([]string, 0)
+	membersMangedByTerraform := make([]string, 0)
+	membersMangedByTerraform = append([]string(nil), membersFromTerraform...)
 	if ignoreMembersUnknownByTerraform {
 		for _, m := range membersFromLdap {
 			if stringInSlice(m, membersFromTerraform) {
-				membersMangedByTerrafrom = append(membersMangedByTerrafrom, m)
+				membersMangedByTerraform = append(membersMangedByTerraform, m)
 			}
 		}
 	} else {
-		membersMangedByTerrafrom = append([]string(nil), membersFromLdap...)
+		for _, m := range membersFromLdap {
+			if !stringInSlice(m, membersMangedByTerraform) {
+				membersMangedByTerraform = append(membersMangedByTerraform, m)
+			}
+		}
 	}
-	return membersMangedByTerrafrom
+	return membersMangedByTerraform
 
 }
 
@@ -104,9 +95,11 @@ func (api *API) getGroupMemberNames(groupDN, userBase string) ([]string, error) 
 	if err != nil {
 		return nil, fmt.Errorf("getGroupMember - failed to search %s: %s", groupDN, err)
 	}
-
+	if ret == nil {
+		return []string{}, nil
+	}
 	if len(ret) == 0 {
-		return nil, nil
+		return []string{}, nil
 	}
 	members := make([]string, len(ret))
 
@@ -168,7 +161,6 @@ func (api *API) getGroupMemberDNByName(names []string, userBase string) ([]strin
 	filter = fmt.Sprintf("%s))", filter)
 	log.Infof("Filter for search group members: %s", filter)
 	ret, err := api.searchObject(filter, userBase, []string{"sAMAccountName"})
-	log.Infof("Not all members found in ldap: %d, %d, %t", len(ret), len(names), len(ret) != len(names))
 	if len(ret) != len(names) {
 		log.Errorf("Not all members found in ldap: %s", names)
 		memberNamesFromLdap := make([]string, len(ret))
@@ -197,7 +189,7 @@ func (api *API) getGroupMemberDNByName(names []string, userBase string) ([]strin
 }
 
 func (api *API) updateGroupMembers(cn, baseOU, userBase string, oldMembers, newMembers []string, ignoreMembersUnknownByTerraform bool) error {
-	group, err := api.getGroup(cn, baseOU, userBase, newMembers, ignoreMembersUnknownByTerraform)
+	group, err := api.getGroup(cn, baseOU, userBase, oldMembers, ignoreMembersUnknownByTerraform)
 	if err != nil {
 		return fmt.Errorf("updateGroupMembers - getting group  cn=%s%s: %s", cn, baseOU, err)
 	}
@@ -205,40 +197,47 @@ func (api *API) updateGroupMembers(cn, baseOU, userBase string, oldMembers, newM
 	membersToAdd := make(map[string]bool)
 	// users to remove
 	for _, oldMember := range oldMembers {
-		if !stringInSlice(oldMember, newMembers) {
-
-			membersToRemove[oldMember] = true
+		if stringInSlice(oldMember, group.member) {
+			if !stringInSlice(oldMember, newMembers) {
+				membersToRemove[oldMember] = true
+			}
 		}
 	}
 	log.Infof("members to remove: %v", membersToRemove)
 	// users to add
 	for _, newMember := range newMembers {
-		if !stringInSlice(newMember, oldMembers) {
-			membersToAdd[newMember] = true
+		if !stringInSlice(newMember, group.member) {
+			if !stringInSlice(newMember, oldMembers) {
+				membersToAdd[newMember] = true
+			}
 		}
 	}
 	log.Infof("members to add: %v", membersToAdd)
 	membersToRemoveBecauseOutsideModifcation := make(map[string]bool)
-	membersToAddBecauseOutsideModifcation := make(map[string]bool)
+	//membersToAddBecauseOutsideModifcation := make(map[string]bool)
 	// users which was add to group outsite terrafrom, remove it!!
-	for _, current_member := range group.member {
-		if !stringInSlice(current_member, newMembers) {
-			membersToRemoveBecauseOutsideModifcation[current_member] = true
+	for _, currentMember := range group.member {
+		if !keyInMap(currentMember, membersToRemove) {
+			if !stringInSlice(currentMember, newMembers) {
+				membersToRemoveBecauseOutsideModifcation[currentMember] = true
+			}
 		}
 	}
 	log.Infof("members to remove because added outside terraform: %v", membersToRemoveBecauseOutsideModifcation)
-	// users which was remove from group outsite terrafrom, add it again!!
-	for _, newMember := range newMembers {
-		if !stringInSlice(newMember, group.member) {
-			membersToAddBecauseOutsideModifcation[newMember] = true
-		}
-	}
-	log.Infof("members to add because it was removed outside terraform: %v", membersToAddBecauseOutsideModifcation)
+	//// users which was remove from group outsite terrafrom, add it again!!
+	//for _, currentMember := range group.member {
+	//	if !keyInMap(currentMember, membersToAdd) {
+	//		if !stringInSlice(currentMember, newMembers) {
+	//			membersToAddBecauseOutsideModifcation[newMember] = true
+	//		}
+	//	}
+	//}
+	//log.Infof("members to add because it was removed outside terraform: %v", membersToAddBecauseOutsideModifcation)
 
 	if !ignoreMembersUnknownByTerraform {
-		for m := range membersToAddBecauseOutsideModifcation {
-			membersToAdd[m] = true
-		}
+		//for m := range membersToAddBecauseOutsideModifcation {
+		//	membersToAdd[m] = true
+		//}
 		for m := range membersToRemoveBecauseOutsideModifcation {
 			membersToRemove[m] = true
 		}
@@ -260,11 +259,15 @@ func (api *API) updateGroupMembers(cn, baseOU, userBase string, oldMembers, newM
 	}
 	log.Infof("Final members to add: %s", add["member"])
 	log.Infof("Final members to remove: %s", remove["member"])
-
-	err = api.updateObject(group.dn, nil, add, make(map[string][]string), remove)
-	if err != nil {
-		return fmt.Errorf("updateGroupMembers - updating members in group  cn=%s,%s add(%s), remove(%s)    %s", cn, baseOU, add, remove, err)
+	if len(add) > 0 || len(remove) > 0 {
+		err = api.updateObject(group.dn, nil, add, make(map[string][]string), remove)
+		if err != nil {
+			return fmt.Errorf("updateGroupMembers - updating members in group  cn=%s,%s add(%s), remove(%s)    %s", cn, baseOU, add, remove, err)
+		}
+	}else{
+		log.Infof("Members group(name=%s) not change.",group.name)
 	}
+
 	return nil
 
 }
@@ -280,7 +283,7 @@ func (api *API) renameGroup(oldName, baseOu, newName string) error {
 	log.Infof("Renaming group %s to %s.", oldName, newName)
 	// specific uid of the group
 	UID := fmt.Sprintf("cn=%s", newName)
-	object,err :=api.getObject(fmt.Sprintf("cn=%s,%s", oldName, baseOu),[]string{})
+	object, err := api.getObject(fmt.Sprintf("cn=%s,%s", oldName, baseOu), []string{})
 	if err != nil {
 		return fmt.Errorf("renameGroup - failed to move group: %s", err)
 	}
@@ -306,9 +309,9 @@ func (api *API) moveGroup(name, oldOU, newOU string) error {
 	log.Infof("Moving group from %s to %s.", oldOU, newOU)
 	// specific uid of the group
 	UID := fmt.Sprintf("cn=%s", name)
-	oldDN:=fmt.Sprintf("cn=%s,%s", name, oldOU)
-	newDN:=fmt.Sprintf("cn=%s,%s", name, newOU)
-	object,err :=api.getObject(oldDN,[]string{})
+	oldDN := fmt.Sprintf("cn=%s,%s", name, oldOU)
+	newDN := fmt.Sprintf("cn=%s,%s", name, newOU)
+	object, err := api.getObject(oldDN, []string{})
 	if err != nil {
 		return fmt.Errorf("moveGroup - failed to move group: %s", err)
 	}
@@ -316,7 +319,7 @@ func (api *API) moveGroup(name, oldOU, newOU string) error {
 		return fmt.Errorf("moveGroup - group not found: %s", err)
 	}
 	if object.dn == newDN {
-		log.Infof("Group already under right organization unit: %s",newOU)
+		log.Infof("Group already under right organization unit: %s", newOU)
 		return nil
 	}
 	req := ldap.NewModifyDNRequest(oldDN, UID, true, newOU)
@@ -355,6 +358,16 @@ func mapKeys(mapp map[string]bool) []string {
 	return keys
 
 }
+
+func keyInMap(a string, mapp map[string]bool) bool {
+	for key := range mapp {
+		if a == key {
+			return true
+		}
+	}
+	return false
+}
+
 func stringInSlice(a string, list []string) bool {
 	for _, b := range list {
 		if b == a {

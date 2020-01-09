@@ -2,6 +2,7 @@ package activedirectory
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,7 +47,7 @@ func TestGetGroup(t *testing.T) {
 
 		api := &API{client: mockClient}
 
-		group, err := api.getGroup("","","",[]string{},true)
+		group, err := api.getGroup("", "", "", []string{}, true)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, group)
@@ -60,20 +61,20 @@ func TestGetGroup(t *testing.T) {
 
 		api := &API{client: mockClient}
 
-		group, err := api.getGroup("","","",[]string{},true)
+		group, err := api.getGroup("", "", "", []string{}, true)
 
 		assert.Error(t, err)
 		assert.Nil(t, group)
 	})
 
-//
+	//
 	t.Run("getGroup - should return nil when api.client.Search returns nil", func(t *testing.T) {
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(nil, nil)
 
 		api := &API{client: mockClient}
 
-		group, err := api.getGroup("","","",[]string{},true)
+		group, err := api.getGroup("", "", "", []string{}, true)
 
 		assert.NoError(t, err)
 		assert.Nil(t, group)
@@ -85,7 +86,7 @@ func TestGetGroup(t *testing.T) {
 
 		api := &API{client: mockClient}
 
-		group, err := api.getGroup("","","",[]string{},true)
+		group, err := api.getGroup("", "", "", []string{}, true)
 
 		assert.NoError(t, err)
 		assert.Nil(t, group)
@@ -101,7 +102,7 @@ func TestCreateGroup(t *testing.T) {
 
 		api := &API{client: mockClient}
 
-		err := api.createGroup("", "", "","",[]string{},true)
+		err := api.createGroup("", "", "", "", []string{}, true)
 		assert.Error(t, err)
 	})
 
@@ -111,7 +112,7 @@ func TestCreateGroup(t *testing.T) {
 
 		api := &API{client: mockClient}
 
-		err := api.createGroup("", "", "","",[]string{},true)
+		err := api.createGroup("", "", "", "", []string{}, true)
 		assert.Error(t, err)
 	})
 }
@@ -225,7 +226,6 @@ func TestUpdateGroupDescription(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-
 	t.Run("updateGroupDescription - should modify description", func(t *testing.T) {
 		matchFunc := func(req *ldap.ModifyRequest) bool {
 			for i := 0; i < len(req.Changes); i++ {
@@ -248,9 +248,10 @@ func TestUpdateGroupDescription(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
 //
 func TestUpdateGroupName(t *testing.T) {
-	attributes := []string{"name", "description","sAMAccountName"}
+	attributes := []string{"name", "description", "sAMAccountName"}
 
 	t.Run("renameGroup - should forward error from ldap.Client.Search", func(t *testing.T) {
 		mockClient := new(MockClient)
@@ -281,7 +282,6 @@ func TestUpdateGroupName(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-
 	t.Run("renameGroup - should return nil when ou was updated successfully", func(t *testing.T) {
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(createADResult(1, attributes), nil)
@@ -296,66 +296,229 @@ func TestUpdateGroupName(t *testing.T) {
 }
 
 func TestUpdateMemberGroup(t *testing.T) {
-	numberOfObjects := 1
-	attributes := []string{"name", "description"}
-	searchResult := createADResult(numberOfObjects, attributes)
 
 	t.Run("updateGroupMembers - should forward error from api.searchObject", func(t *testing.T) {
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(nil, fmt.Errorf("error"))
 
 		api := &API{client: mockClient}
-		err := api.updateGroupMembers("test1","","",[]string{},[]string{},false)
+		err := api.updateGroupMembers("test1", "", "", []string{}, []string{}, false)
 
 		assert.Error(t, err)
 	})
 
-	searchResult.Entries[0].Attributes = append(searchResult.Entries[0].Attributes,&ldap.EntryAttribute{
-		Name: "sAMAccountName",
-		Values: []string{searchResult.Entries[0].Attributes[0].Values[0]},
-	})
-	name:= searchResult.Entries[0].Attributes[0].Values[0]
-	dn :=searchResult.Entries[0].DN
-	t.Run("updateGroupMembers - should call Modify with correct ModifyRequest ", func(t *testing.T) {
+	groupName := getRandomString(5)
+	groupBase := getRandomOU(2, 1)
+	groupDN := fmt.Sprintf("cn=%s,%s", groupName, groupBase)
+	userName := getRandomString(5)
+	userBase := getRandomOU(2, 1)
+	userDN := fmt.Sprintf("cn=%s,%s", userName, userBase)
+	userADResult := createADResultForUsers([]string{userName}, userBase)
+	members := make([][]string, 1)
+	groupADResult := createADResultForGroups([]string{groupName}, groupBase, members, userBase)
+
+	t.Run("updateGroupMembers - should call Modify with add one member", func(t *testing.T) {
 		mockClient := new(MockClient)
-		matchFunc := func(sr *ldap.ModifyRequest) bool {
-			if len(sr.Changes) == 1 &&
-				sr.Changes[0].Operation == ldap.AddAttribute  &&
-				sr.Changes[0].Modification.Type == "member" &&
-				len(sr.Changes[0].Modification.Vals) == 1 &&
-				sr.Changes[0].Modification.Vals[0] == "userName"  {
-					return true
-			}
-			return false
-		}
 
 		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
-			return sr.Filter == fmt.Sprintf("(&(objectclass=group)(sAMAccountName=%s))",name)
-		})).Return(searchResult, nil)
+			return sr.Filter == fmt.Sprintf("(&(objectclass=group)(sAMAccountName=%s))", groupName)
+		})).Return(groupADResult, nil)
 		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
-			return sr.Filter == fmt.Sprintf("(&(|(objectclass=group)(objectclass=user))(memberOf=%s))",dn)
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=group)(objectclass=user))(memberOf=%s))", groupDN)
 		})).Return(nil, nil)
 		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
-			return sr.Filter == "(&(|(objectclass=user)(objectclass=group))(|(sAMAccountName=userName)))"
-		})).Return(createADResultForUsers([]string{"userName"},""), nil)
-
-		mockClient.On("Modify",mock.MatchedBy(matchFunc)).Return(nil, nil)
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=user)(objectclass=group))(|(sAMAccountName=%s)))", userName)
+		})).Return(userADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == "(objectclass=*)" && sr.BaseDN == groupDN
+		})).Return(groupADResult, nil)
+		mockClient.On("Modify", mock.MatchedBy(func(sr *ldap.ModifyRequest) bool {
+			return len(sr.Changes) == 1 &&
+				sr.Changes[0].Operation == ldap.AddAttribute &&
+				sr.Changes[0].Modification.Type == "member" &&
+				len(sr.Changes[0].Modification.Vals) == 1 &&
+				sr.Changes[0].Modification.Vals[0] == userDN
+		})).Return(nil, nil)
 		api := &API{client: mockClient}
-		err := api.updateGroupMembers(name,"","",[]string{},[]string{"userName"},false)
+		err := api.updateGroupMembers(groupName, groupBase, userBase, []string{}, []string{userName}, false)
+		assert.NoError(t, err)
+	})
+	userName2 := getRandomString(5)
+	userDN2 := fmt.Sprintf("cn=%s,%s", userName2, userBase)
+	userADResult = createADResultForUsers([]string{userName, userName2}, userBase)
+	t.Run("updateGroupMembers - should call Modify with add two member", func(t *testing.T) {
+		mockClient := new(MockClient)
 
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(objectclass=group)(sAMAccountName=%s))", groupName)
+		})).Return(groupADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=group)(objectclass=user))(memberOf=%s))", groupDN)
+		})).Return(nil, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return strings.Contains(sr.Filter, "(&(|(objectclass=user)(objectclass=group))(|") &&
+				strings.Contains(sr.Filter, fmt.Sprintf("(sAMAccountName=%s)", userName)) &&
+				strings.Contains(sr.Filter, fmt.Sprintf("(sAMAccountName=%s)", userName2))
+		})).Return(userADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == "(objectclass=*)" && sr.BaseDN == groupDN
+		})).Return(groupADResult, nil)
+		mockClient.On("Modify", mock.MatchedBy(func(sr *ldap.ModifyRequest) bool {
+			assert.Len(t, sr.Changes, 1)
+			assert.Equal(t, sr.Changes[0].Operation, uint(ldap.AddAttribute))
+			assert.Equal(t, sr.Changes[0].Modification.Type, "member")
+			assert.Len(t, sr.Changes[0].Modification.Vals, 2)
+			assert.Contains(t, sr.Changes[0].Modification.Vals, userDN)
+			assert.Contains(t, sr.Changes[0].Modification.Vals, userDN2)
+			return true
+		})).Return(nil, nil)
+		api := &API{client: mockClient}
+
+		err := api.updateGroupMembers(groupName, groupBase, userBase, []string{}, []string{userName, userName2}, false)
+		assert.NoError(t, err)
+	})
+
+	members = make([][]string, 1)
+	members[0] = []string{userName}
+	groupADResult = createADResultForGroups([]string{groupName}, groupBase, members, userBase)
+	userADResult = createADResultForUsers([]string{userName}, userBase)
+
+	t.Run("updateGroupMembers - should not call Modify when user already in group", func(t *testing.T) {
+		mockClient := new(MockClient)
+
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(objectclass=group)(sAMAccountName=%s))", groupName)
+		})).Return(groupADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=group)(objectclass=user))(memberOf=%s))", groupDN)
+		})).Return(userADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=user)(objectclass=group))(|(sAMAccountName=%s)))", userName)
+		})).Return(userADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == "(objectclass=*)" && sr.BaseDN == groupDN
+		})).Return(groupADResult, nil)
+		api := &API{client: mockClient}
+		err := api.updateGroupMembers(groupName, groupBase, userBase, []string{}, []string{userName}, false)
+		assert.NoError(t, err)
+	})
+	t.Run("updateGroupMembers - should call Modify with Delete member", func(t *testing.T) {
+		mockClient := new(MockClient)
+
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(objectclass=group)(sAMAccountName=%s))", groupName)
+		})).Return(groupADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=group)(objectclass=user))(memberOf=%s))", groupDN)
+		})).Return(userADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=user)(objectclass=group))(|(sAMAccountName=%s)))", userName)
+		})).Return(userADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == "(objectclass=*)" && sr.BaseDN == groupDN
+		})).Return(groupADResult, nil)
+		mockClient.On("Modify", mock.MatchedBy(func(sr *ldap.ModifyRequest) bool {
+			return len(sr.Changes) == 1 &&
+				sr.Changes[0].Operation == ldap.DeleteAttribute &&
+				sr.Changes[0].Modification.Type == "member" &&
+				len(sr.Changes[0].Modification.Vals) == 1 &&
+				sr.Changes[0].Modification.Vals[0] == userDN
+		})).Return(nil, nil)
+		api := &API{client: mockClient}
+		err := api.updateGroupMembers(groupName, groupBase, userBase, []string{userName}, []string{}, false)
+		assert.NoError(t, err)
+	})
+
+	userADResult2 := createADResultForUsers([]string{userName2}, userBase)
+	t.Run("updateGroupMembers - should call Modify with Delete member and Add member", func(t *testing.T) {
+		mockClient := new(MockClient)
+
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(objectclass=group)(sAMAccountName=%s))", groupName)
+		})).Return(groupADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=group)(objectclass=user))(memberOf=%s))", groupDN)
+		})).Return(userADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=user)(objectclass=group))(|(sAMAccountName=%s)))", userName)
+		})).Return(userADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=user)(objectclass=group))(|(sAMAccountName=%s)))", userName2)
+		})).Return(userADResult2, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == "(objectclass=*)" && sr.BaseDN == groupDN
+		})).Return(groupADResult, nil)
+		mockClient.On("Modify", mock.MatchedBy(func(sr *ldap.ModifyRequest) bool {
+			assert.Len(t, sr.Changes, 2)
+			assert.Equal(t, sr.Changes[0].Operation, uint(ldap.AddAttribute))
+			assert.Equal(t, sr.Changes[1].Operation, uint(ldap.DeleteAttribute))
+			assert.Equal(t, sr.Changes[0].Modification.Type, "member")
+			assert.Equal(t, sr.Changes[1].Modification.Type, "member")
+			assert.Equal(t, sr.Changes[0].Modification.Vals[0], userDN2)
+			assert.Equal(t, sr.Changes[1].Modification.Vals[0], userDN)
+			return true
+
+		})).Return(nil, nil)
+		api := &API{client: mockClient}
+		err := api.updateGroupMembers(groupName, groupBase, userBase, []string{userName}, []string{userName2}, false)
+		assert.NoError(t, err)
+	})
+
+	t.Run("updateGroupMembers - should not call Modify because ignoreMembersUnknownByTerraform flag was set", func(t *testing.T) {
+		mockClient := new(MockClient)
+
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(objectclass=group)(sAMAccountName=%s))", groupName)
+		})).Return(groupADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=group)(objectclass=user))(memberOf=%s))", groupDN)
+		})).Return(userADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=user)(objectclass=group))(|(sAMAccountName=%s)))", userName)
+		})).Return(userADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == "(objectclass=*)" && sr.BaseDN == groupDN
+		})).Return(groupADResult, nil)
+		api := &API{client: mockClient}
+		err := api.updateGroupMembers(groupName, groupBase, userBase, []string{}, []string{}, true)
+		assert.NoError(t, err)
+	})
+	t.Run("updateGroupMembers - should  call Modify with Delete member because ignoreMembersUnknownByTerraform flag was not set", func(t *testing.T) {
+		mockClient := new(MockClient)
+
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(objectclass=group)(sAMAccountName=%s))", groupName)
+		})).Return(groupADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=group)(objectclass=user))(memberOf=%s))", groupDN)
+		})).Return(userADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == fmt.Sprintf("(&(|(objectclass=user)(objectclass=group))(|(sAMAccountName=%s)))", userName)
+		})).Return(userADResult, nil)
+		mockClient.On("Search", mock.MatchedBy(func(sr *ldap.SearchRequest) bool {
+			return sr.Filter == "(objectclass=*)" && sr.BaseDN == groupDN
+		})).Return(groupADResult, nil)
+		mockClient.On("Modify", mock.MatchedBy(func(sr *ldap.ModifyRequest) bool {
+			return len(sr.Changes) == 1 &&
+				sr.Changes[0].Operation == ldap.DeleteAttribute &&
+				sr.Changes[0].Modification.Type == "member" &&
+				len(sr.Changes[0].Modification.Vals) == 1 &&
+				sr.Changes[0].Modification.Vals[0] == userDN
+		})).Return(nil, nil)
+		api := &API{client: mockClient}
+		err := api.updateGroupMembers(groupName, groupBase, userBase, []string{}, []string{}, false)
 		assert.NoError(t, err)
 	})
 }
 
 func TestDeleteGroup(t *testing.T) {
 	numberOfObjects := 1
-	attributes := []string{"name","sAMAccountName", "description"}
+	attributes := []string{"name", "sAMAccountName", "description"}
 	searchResult := createADResult(numberOfObjects, attributes)
 
 	t.Run("deleteGroup - should forward error from api.searchObject", func(t *testing.T) {
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(nil, fmt.Errorf("error"))
-
 
 		api := &API{client: mockClient}
 		err := api.deleteGroup("test1")

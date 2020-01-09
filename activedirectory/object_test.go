@@ -28,6 +28,42 @@ func createADResult(cntEntries int, attributes []string) *ldap.SearchResult {
 
 	return result
 }
+func createADResultForGroups(groupNames []string, groupBase string, members [][]string,userBase string) *ldap.SearchResult {
+	result := new(ldap.SearchResult)
+	result.Entries = make([]*ldap.Entry, len(groupNames))
+	for i := 0; i < len(groupNames); i++ {
+		result.Entries[i]=createLdapGroupEntry(groupNames[i],groupBase,members[i],userBase)
+	}
+	return result
+}
+func createLdapGroupEntry(groupName, groupBaseOU string, membersNames []string, userBaseOU string) *ldap.Entry {
+	result := new(ldap.Entry)
+	result.DN= fmt.Sprintf("cn=%s,%s", groupName, groupBaseOU)
+	result.Attributes = make([]*ldap.EntryAttribute, 4)
+	membersFullDNs := make([]string, len(membersNames))
+	for i,memberName :=range membersNames {
+		membersFullDNs[i]=fmt.Sprintf("cn=%s,%s",memberName,userBaseOU)
+	}
+	result.Attributes[0]= &ldap.EntryAttribute{
+		Name :"sAMAccountName",
+		Values: []string{groupName},
+	}
+	result.Attributes[1]= &ldap.EntryAttribute{
+		Name :"name",
+		Values: []string{groupName},
+	}
+	result.Attributes[2]= &ldap.EntryAttribute{
+		Name :"description",
+		Values: []string{getRandomString(10)},
+	}
+	result.Attributes[3]= &ldap.EntryAttribute{
+		Name :"member",
+		Values: []string{groupName},
+	}
+
+	return result
+}
+
 
 func createADResultForUsers(names []string, userBase string) *ldap.SearchResult {
 	result := new(ldap.SearchResult)
@@ -39,11 +75,12 @@ func createADResultForUsers(names []string, userBase string) *ldap.SearchResult 
 }
 
 func createLdapUserEntry(userName, userBase string) *ldap.Entry {
-	attributes := make([]*ldap.EntryAttribute, 1)
-	attributes = append(attributes, &ldap.EntryAttribute{Name: "sAMAccountName", Values: []string{userName}})
-	result := &ldap.Entry{
-		DN:         fmt.Sprintf("cn=%s,%s", userName, userBase),
-		Attributes: attributes,
+	result := new(ldap.Entry)
+	result.DN= fmt.Sprintf("cn=%s,%s", userName, userBase)
+	result.Attributes = make([]*ldap.EntryAttribute, 1)
+	result.Attributes[0]= &ldap.EntryAttribute{
+		Name :"sAMAccountName",
+		Values: []string{userName},
 	}
 	return result
 }

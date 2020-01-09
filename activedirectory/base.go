@@ -38,7 +38,6 @@ type APIInterface interface {
 	deleteOU(dn string) error
 
 	// group objects
-	getGroupByName(name, base,userBase string, member []string, ignoreMembersUnknownByTerraform bool) (*Group, error)
 	getMembersManagedByTerraform(membersFromLdap []string,membersFromTerraform []string, ignoreMembersUnknownByTerraform bool) []string
 	getGroup(name, baseOU, userBase string, member []string, ignoreMembersUnknownByTerraform bool) (*Group, error)
 	getGroupMemberNames(groupDn, userBase string) ([]string, error)

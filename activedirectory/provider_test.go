@@ -11,10 +11,10 @@ import (
 )
 
 // acceptance tests
-var testAccProviders map[string]terraform.ResourceProvider // nolint:gochecknoglobals
-var testAccProvider *schema.Provider                       // nolint:gochecknoglobals
+var testAccProviders map[string]terraform.ResourceProvider // nolint:gochecknoglobals // Need it for Acc tests
+var testAccProvider *schema.Provider                       // nolint:gochecknoglobals // Need it for Acc tests
 
-func init() { // nolint:gochecknoinits
+func init() { // nolint:gochecknoinits // Used init function for some reason
 	testAccProvider = Provider().(*schema.Provider)
 	testAccProviders = map[string]terraform.ResourceProvider{
 		"activedirectory": testAccProvider,

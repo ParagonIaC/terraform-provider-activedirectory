@@ -25,7 +25,7 @@ func createADComputerResult() *ldap.SearchResult {
 	return createADResult(1, attributes)
 }
 
-func TestGetComputer(t *testing.T) { // nolint:funlen
+func TestGetComputer(t *testing.T) { // nolint:funlen // Test function
 	name := getRandomString(10)
 	attributes := []string{"description", "cn"}
 

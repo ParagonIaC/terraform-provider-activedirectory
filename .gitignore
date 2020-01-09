@@ -20,6 +20,10 @@ coverage.txt
 # ignore release build
 **/dist/*
 
+# goland idea files
+.idea/*
+
+
 _site
 .sass-cache
 .jekyll-metadata

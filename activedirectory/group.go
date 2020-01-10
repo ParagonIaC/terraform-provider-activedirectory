@@ -49,14 +49,7 @@ func (api *API) getGroup(name, baseOU, userBase string, member []string, ignoreM
 		member:      membersMangedByTerraform,
 	}, nil
 }
-func getMembers(ldapObject *Object) []string {
-	for key := range ldapObject.attributes {
-		if key == "member" {
-			return ldapObject.attributes[key]
-		}
-	}
-	return []string{}
-}
+
 func getAttribute(attrName string, ldapObject *Object) string {
 	for key := range ldapObject.attributes {
 		if key == attrName {
@@ -67,8 +60,7 @@ func getAttribute(attrName string, ldapObject *Object) string {
 }
 
 func (api *API) getMembersManagedByTerraform(membersFromLdap []string, membersFromTerraform []string, ignoreMembersUnknownByTerraform bool) []string {
-	membersMangedByTerraform := make([]string, 0)
-	membersMangedByTerraform = append([]string(nil), membersFromTerraform...)
+	membersMangedByTerraform := append([]string(nil), membersFromTerraform...)
 	if ignoreMembersUnknownByTerraform {
 		for _, m := range membersFromLdap {
 			if stringInSlice(m, membersFromTerraform) {
@@ -224,20 +216,8 @@ func (api *API) updateGroupMembers(cn, baseOU, userBase string, oldMembers, newM
 		}
 	}
 	log.Infof("members to remove because added outside terraform: %v", membersToRemoveBecauseOutsideModifcation)
-	//// users which was remove from group outsite terrafrom, add it again!!
-	//for _, currentMember := range group.member {
-	//	if !keyInMap(currentMember, membersToAdd) {
-	//		if !stringInSlice(currentMember, newMembers) {
-	//			membersToAddBecauseOutsideModifcation[newMember] = true
-	//		}
-	//	}
-	//}
-	//log.Infof("members to add because it was removed outside terraform: %v", membersToAddBecauseOutsideModifcation)
 
 	if !ignoreMembersUnknownByTerraform {
-		//for m := range membersToAddBecauseOutsideModifcation {
-		//	membersToAdd[m] = true
-		//}
 		for m := range membersToRemoveBecauseOutsideModifcation {
 			membersToRemove[m] = true
 		}
@@ -264,8 +244,8 @@ func (api *API) updateGroupMembers(cn, baseOU, userBase string, oldMembers, newM
 		if err != nil {
 			return fmt.Errorf("updateGroupMembers - updating members in group  cn=%s,%s add(%s), remove(%s)    %s", cn, baseOU, add, remove, err)
 		}
-	}else{
-		log.Infof("Members group(name=%s) not change.",group.name)
+	} else {
+		log.Infof("Members group(name=%s) not change.", group.name)
 	}
 
 	return nil
@@ -291,7 +271,7 @@ func (api *API) renameGroup(oldName, baseOu, newName string) error {
 		return fmt.Errorf("renameGroup - group not found: %s", err)
 	}
 	req := ldap.NewModifyDNRequest(fmt.Sprintf("cn=%s,%s", oldName, baseOu), UID, true, "")
-	if err := api.client.ModifyDN(req); err != nil {
+	if err = api.client.ModifyDN(req); err != nil {
 		return fmt.Errorf("renameGroup - failed to rename group: %s", err)
 	}
 	changeAttr := map[string][]string{}

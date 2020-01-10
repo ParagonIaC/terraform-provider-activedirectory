@@ -38,7 +38,8 @@ func resourceADGroupObject() *schema.Resource {
 			},
 			"user_base": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional:    true,
+				Default:     "",
 				// this is to ignore case in ad distinguished name
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return strings.EqualFold(old, new)

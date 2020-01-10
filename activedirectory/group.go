@@ -36,6 +36,9 @@ func (api *API) getGroup(name, baseOU, userBase string, member []string, ignoreM
 	if len(ret) > 1 {
 		return nil, fmt.Errorf("getGroup - more than one ou object with the same name under the same base ou found")
 	}
+	if userBase == "" {
+		userBase = api.getDomainDN()
+	}
 	membersFromLdap, err := api.getGroupMemberNames(ret[0].dn, userBase)
 	if err != nil {
 		return nil, fmt.Errorf("getGroup - failed to get group members %s in %s: %s", ret[0].dn, userBase, err)
@@ -106,6 +109,9 @@ func (api *API) getGroupMemberNames(groupDN, userBase string) ([]string, error) 
 func (api *API) createGroup(name, baseOU, description, userBase string, member []string, ignoreMembersUnknownByTerraform bool) error {
 	log.Infof("Creating group %s in %s", name, baseOU)
 	log.Infof("Creating group with members %s", member)
+	if userBase == "" {
+		userBase = api.getDomainDN()
+	}
 	tmp, err := api.getGroup(name, baseOU, userBase, member, ignoreMembersUnknownByTerraform)
 	if err != nil {
 		return fmt.Errorf("createGroup - talking to active directory failed: %s", err)
@@ -181,6 +187,9 @@ func (api *API) getGroupMemberDNByName(names []string, userBase string) ([]strin
 }
 
 func (api *API) updateGroupMembers(cn, baseOU, userBase string, oldMembers, newMembers []string, ignoreMembersUnknownByTerraform bool) error {
+	if userBase == "" {
+		userBase = api.getDomainDN()
+	}
 	group, err := api.getGroup(cn, baseOU, userBase, oldMembers, ignoreMembersUnknownByTerraform)
 	if err != nil {
 		return fmt.Errorf("updateGroupMembers - getting group  cn=%s%s: %s", cn, baseOU, err)

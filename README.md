@@ -43,4 +43,23 @@ resource "activedirectory_ou" "test_ou" {
   base_ou        = "OU=Test,CN=Computers,DC=example,DC=org" # can be updated
   description    = "terraform sample ou"                    # can be updated
 }
+
+# Add group to Active Directory
+resource "activedirectory_group" "test_group" {
+  name           = "TerraformGroup"                         # can be updated
+  base_ou        = activedirectory_ou.test_ou.dn            # can be updated
+  description    = "terraform sample group"                 # can be updated
+  user_base = "CN=Users,DC=example,DC=org"                  # can be updated, where to search users, optional
+                                                            # if not set default is set on AD domain.(in this example 'DC=example,DC=org' )
+  member    = [ somebody ]                                  # can be updated, sAMAaccount as user/group id
+  ignore_members_unknown_by_terraform = false               # can be updated, not remove user unknown by terraform
+}
+# Add group to Active Directory
+resource "activedirectory_group" "test_group_two" {
+  name           = "TerraformGroupTwo"                      # can be updated
+  base_ou        = activedirectory_ou.test_ou.dn            # can be updated
+  description    = "terraform sample group two"             # can be updated
+  member    = [ activedirectory_group.test_group.name ]     # can be updated, group can be also member
+  ignore_members_unknown_by_terraform = false               # can be updated, not remove user unknown by terraform
+}
 ```

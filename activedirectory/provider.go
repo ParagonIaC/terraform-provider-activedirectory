@@ -39,8 +39,8 @@ func Provider() terraform.ResourceProvider {
 			"no_cert_verify": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("AD_NO_CERT_VERIFY", true),
-				Description: "Do not verify TLS certificate (default: true).",
+				DefaultFunc: schema.EnvDefaultFunc("AD_NO_CERT_VERIFY", false),
+				Description: "Do not verify TLS certificate (default: false).",
 			},
 			"user": {
 				Type:        schema.TypeString,

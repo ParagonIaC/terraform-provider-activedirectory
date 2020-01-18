@@ -44,6 +44,7 @@ type API struct {
 	port     int
 	domain   string
 	useTLS   bool
+	insecure bool
 	user     string
 	password string
 	client   ldap.Client
@@ -72,7 +73,7 @@ func (api *API) connect() error {
 
 	if api.useTLS {
 		log.Info("Configuring client to use secure connection.")
-		if err = client.StartTLS(&tls.Config{InsecureSkipVerify: false}); err != nil {
+		if err = client.StartTLS(&tls.Config{InsecureSkipVerify: api.insecure, ServerName: api.host}); err != nil { //nolint:gosec
 			return fmt.Errorf("connect - failed to use secure connection: %s", err)
 		}
 	}

@@ -36,6 +36,12 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("AD_USE_TLS", true),
 				Description: "Use TLS to secure the connection (default: true).",
 			},
+			"no_cert_verify": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("AD_NO_CERT_VERIFY", true),
+				Description: "Do not verify TLS certificate (default: true).",
+			},
 			"user": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -66,6 +72,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		port:     d.Get("port").(int),
 		domain:   d.Get("domain").(string),
 		useTLS:   d.Get("use_tls").(bool),
+		insecure: d.Get("no_cert_verify").(bool),
 		user:     d.Get("user").(string),
 		password: d.Get("password").(string),
 	}

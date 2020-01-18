@@ -1,7 +1,6 @@
 # Terraform Provider - Active Directory
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/ParagonIaC/terraform-provider-activedirectory)](https://goreportcard.com/report/github.com/ParagonIaC/terraform-provider-activedirectory)
-https://goreportcard.com/report/github.com/ParagonIaC/terraform-provider-activedirectory
+[![Go Report Card](https://goreportcard.com/badge/github.com/ParagonIaC/terraform-provider-activedirectory?style=flat-square&label=building)](https://goreportcard.com/report/github.com/ParagonIaC/terraform-provider-activedirectory)
 [![CircleCI](https://img.shields.io/circleci/build/github/ParagonIaC/terraform-provider-activedirectory?style=flat-square&label=building)](https://circleci.com/gh/ParagonIaC/terraform-provider-activedirectory)
 [![Codecov](https://img.shields.io/codecov/c/gh/ParagonIaC/terraform-provider-activedirectory?style=flat-square)](https://codecov.io/gh/ParagonIaC/terraform-provider-activedirectory)
 [![GitHub license](https://img.shields.io/github/license/ParagonIaC/terraform-provider-activedirectory.svg?style=flat-square)](https://github.com/ParagonIaC/terraform-provider-activedirectory/blob/master/LICENSE)

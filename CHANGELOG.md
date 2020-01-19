@@ -1,3 +1,20 @@
+## 0.0.7 (January 18, 2020)
+
+BUG FIXES:
+* Connection failed when TLS was enabled since no server name was defined and InsecureSkipVerify was set to true. We are now setting to server name in the TLS config and also allowing InsecureSkipVerify to be set to false via provider setup, which results in a TLS connection without checking the certificate.
+
+```hcl
+# Configure the AD Provider
+provider "activedirectory" {
+  ...
+  use_tls  = true
+  no_cert_verify = true
+  ...
+}
+```
+
+* Description OU update did not work when OU has any children. This was fixed.
+
 ## 0.0.6 (November 28, 2019)
 
 NOTES:

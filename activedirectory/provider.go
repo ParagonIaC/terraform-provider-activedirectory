@@ -60,6 +60,7 @@ func Provider() terraform.ResourceProvider {
 		ResourcesMap: map[string]*schema.Resource{
 			"activedirectory_computer": resourceADComputerObject(),
 			"activedirectory_ou":       resourceADOUObject(),
+			"activedirectory_group":       resourceADGroupObject(),
 		},
 
 		ConfigureFunc: providerConfigure,

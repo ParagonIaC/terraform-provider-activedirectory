@@ -66,6 +66,20 @@ func TestGetComputer(t *testing.T) { // nolint:funlen // Test function
 		assert.IsType(t, &Computer{}, computer)
 	})
 
+	t.Run("getComputer - should return a computer object even without description", func(t *testing.T) {
+		cnAttribute := []string{"cn"}
+		mockClient := new(MockClient)
+		mockClient.On("Search", mock.Anything).Return(createADResult(1, cnAttribute), nil)
+
+		api := &API{client: mockClient}
+
+		computer, err := api.getComputer("")
+
+		assert.NoError(t, err)
+		assert.NotNil(t, computer)
+		assert.IsType(t, &Computer{}, computer)
+	})
+
 	t.Run("getComputer - should include 'cn' and 'description'", func(t *testing.T) {
 		matchFunc := func(sr *ldap.SearchRequest) bool {
 			return contains(sr.Attributes, "cn") &&

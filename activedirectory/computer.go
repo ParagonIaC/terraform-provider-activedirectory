@@ -39,10 +39,16 @@ func (api *API) getComputer(name string) (*Computer, error) {
 		return nil, fmt.Errorf("getComputer - more than one computer object with the same name found")
 	}
 
+	// defaults description to empty string if not present
+	computerDescription := ""
+	if len(ret[0].attributes["description"]) > 0 {
+		computerDescription = ret[0].attributes["description"][0]
+	}
+
 	return &Computer{
 		name:        ret[0].attributes["cn"][0],
 		dn:          ret[0].dn,
-		description: ret[0].attributes["description"][0],
+		description: computerDescription,
 	}, nil
 }
 
@@ -69,7 +75,9 @@ func (api *API) createComputer(cn, ou, description string) error {
 	attributes["name"] = []string{cn}
 	attributes["sAMAccountName"] = []string{cn + "$"}
 	attributes["userAccountControl"] = []string{"4096"}
-	attributes["description"] = []string{description}
+	if len(description) > 0 {
+		attributes["description"] = []string{description}
+	}
 
 	return api.createObject(fmt.Sprintf("cn=%s,%s", cn, ou), []string{"computer"}, attributes)
 }
@@ -109,9 +117,15 @@ func (api *API) updateComputerOU(cn, ou, newOU string) error {
 // updates the description of an existing computer object
 func (api *API) updateComputerDescription(cn, ou, description string) error {
 	log.Infof("Updating description of computer object %s", cn)
-	return api.updateObject(fmt.Sprintf("cn=%s,%s", cn, ou), nil, nil, map[string][]string{
-		"description": {description},
-	}, nil)
+	if len(description) > 0 {
+		return api.updateObject(fmt.Sprintf("cn=%s,%s", cn, ou), nil, nil, map[string][]string{
+			"description": {description},
+		}, nil)
+	} else {
+		return api.updateObject(fmt.Sprintf("cn=%s,%s", cn, ou), nil, nil, nil, map[string][]string{
+			"description": nil,
+		})
+	}
 }
 
 // deletes an existing computer object.

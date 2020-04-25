@@ -117,9 +117,15 @@ func (api *API) updateComputerOU(cn, ou, newOU string) error {
 // updates the description of an existing computer object
 func (api *API) updateComputerDescription(cn, ou, description string) error {
 	log.Infof("Updating description of computer object %s", cn)
-	return api.updateObject(fmt.Sprintf("cn=%s,%s", cn, ou), nil, nil, map[string][]string{
-		"description": {description},
-	}, nil)
+	if len(description) > 0 {
+		return api.updateObject(fmt.Sprintf("cn=%s,%s", cn, ou), nil, nil, map[string][]string{
+			"description": {description},
+		}, nil)
+	} else {
+		return api.updateObject(fmt.Sprintf("cn=%s,%s", cn, ou), nil, nil, nil, map[string][]string{
+			"description": nil,
+		})
+	}
 }
 
 // deletes an existing computer object.

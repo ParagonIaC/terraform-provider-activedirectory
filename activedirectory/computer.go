@@ -39,10 +39,16 @@ func (api *API) getComputer(name string) (*Computer, error) {
 		return nil, fmt.Errorf("getComputer - more than one computer object with the same name found")
 	}
 
+	// defaults description to empty string if not present
+	computerDescription := ""
+	if len(ret[0].attributes["description"]) > 0 {
+		computerDescription = ret[0].attributes["description"][0]
+	}
+
 	return &Computer{
 		name:        ret[0].attributes["cn"][0],
 		dn:          ret[0].dn,
-		description: ret[0].attributes["description"][0],
+		description: computerDescription,
 	}, nil
 }
 

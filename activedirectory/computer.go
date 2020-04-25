@@ -75,7 +75,9 @@ func (api *API) createComputer(cn, ou, description string) error {
 	attributes["name"] = []string{cn}
 	attributes["sAMAccountName"] = []string{cn + "$"}
 	attributes["userAccountControl"] = []string{"4096"}
-	attributes["description"] = []string{description}
+	if len(description) > 0 {
+		attributes["description"] = []string{description}
+	}
 
 	return api.createObject(fmt.Sprintf("cn=%s,%s", cn, ou), []string{"computer"}, attributes)
 }

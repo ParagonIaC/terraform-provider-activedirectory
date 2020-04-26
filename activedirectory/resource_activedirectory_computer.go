@@ -43,6 +43,10 @@ func resourceADComputerObject() *schema.Resource {
 				Default:  nil,
 			},
 		},
+
+		Importer: &schema.ResourceImporter{
+			State:  resourceADComputerObjectImport,
+		},
 	}
 }
 
@@ -130,3 +134,41 @@ func resourceADComputerObjectDelete(d *schema.ResourceData, meta interface{}) er
 	// call ad to delete the computer object, no error means that object was deleted successfully
 	return api.deleteComputer(d.Get("name").(string), d.Get("ou").(string))
 }
+
+// resourceADComputerObjectImport is the function executed upon 'terraform import'
+func resourceADComputerObjectImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	log.Infof("Importing AD computer object")
+
+	api := meta.(APIInterface)
+
+	results := []*schema.ResourceData{d}
+	computer, err := api.getComputer(d.Id())
+	if err != nil {
+		return results, fmt.Errorf("resourceImporter - getComputer - %s", err)
+	}
+
+	if computer == nil {
+		log.Infof("Computer object %s does not exist", d.Id())
+
+		d.SetId("")
+		return results, fmt.Errorf("computer object does not exist")
+	}
+
+	ou := strings.SplitN(computer.dn, ",", 2)[1]
+
+	if err := d.Set("name", computer.name); err != nil {
+		return results, fmt.Errorf("resourceImporter - set name - failed to set name: %s", err)
+	}
+
+	if err := d.Set("ou", ou); err != nil {
+		return results, fmt.Errorf("resourceImporter - set ou - failed to set ou: %s", err)
+	}
+
+	if err := d.Set("description", computer.description); err != nil {
+		return results, fmt.Errorf("resourceImporter - set description - failed to set description: %s", err)
+	}
+
+	d.SetId(fmt.Sprintf("cn=%s,%s", computer.name, ou))
+	return results, nil
+}
+

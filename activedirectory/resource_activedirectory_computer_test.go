@@ -396,3 +396,46 @@ func TestResourceADComputerObjectDelete(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func TestResourceADComputerObjectImport(t *testing.T) {
+	name := getRandomString(10)
+	ou := getRandomOU(2, 2)
+	description := getRandomString(10)
+
+	testComputer := &Computer{
+		name:        name,
+		dn:          fmt.Sprintf("cn=%s,%s", name, ou),
+		description: description,
+	}
+
+	resourceSchema := resourceADComputerObject().Schema
+	resourceDataMap := map[string]interface{}{
+		"name":        name,
+		"ou":          ou,
+		"description": description,
+	}
+
+	t.Run("resourceADComputerObjectImport - should set attributes correctly", func(t *testing.T) {
+		api := new(MockAPIInterface)
+		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
+
+		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
+		resourceImportedData, err := resourceADComputerObjectImport(resourceLocalData, api)
+
+		assert.NoError(t, err)
+		assert.True(t, strings.EqualFold(resourceImportedData[0].Id(), testComputer.dn))
+		assert.True(t, strings.EqualFold(resourceImportedData[0].Get("name").(string), name))
+		assert.True(t, strings.EqualFold(resourceImportedData[0].Get("ou").(string), ou))
+		assert.True(t, strings.EqualFold(resourceImportedData[0].Get("description").(string), description))
+	})
+
+	t.Run("resourceADComputerObjectImport - should return error when computer does not exist", func(t *testing.T) {
+		api := new(MockAPIInterface)
+		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+
+		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
+		_, err := resourceADComputerObjectImport(resourceLocalData, api)
+
+		assert.Error(t, err)
+	})
+}

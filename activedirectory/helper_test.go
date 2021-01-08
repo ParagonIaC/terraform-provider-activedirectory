@@ -1,13 +1,13 @@
 package activedirectory
 
 import (
+	"github.com/go-ldap/ldap/v3"
 	"math/rand"
 	"reflect"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/ldap.v3"
 )
 
 func TestDecodeADAttributes(t *testing.T) {

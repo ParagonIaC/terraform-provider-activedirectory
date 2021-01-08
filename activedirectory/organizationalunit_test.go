@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/go-ldap/ldap/v3"
 	"github.com/stretchr/testify/assert"
 	mock "github.com/stretchr/testify/mock"
-	"gopkg.in/ldap.v3"
 )
 
 func TestGetOU(t *testing.T) {
@@ -117,7 +117,7 @@ func TestCreateOU(t *testing.T) {
 		name := res.Entries[0].GetAttributeValue("ou")
 		description := res.Entries[0].GetAttributeValue("description")
 		baseOU := getRandomOU(2, 2)
-		res.Entries[0].DN = fmt.Sprintf("ou=%s,%s", name, baseOU)
+		res.Entries[0].DN = fmt.Sprintf("OU=%s,%s", name, baseOU)
 
 		mockClient := new(MockClient)
 		mockClient.On("Search", mock.Anything).Return(res, nil)

@@ -2,13 +2,13 @@ package activedirectory
 
 import (
 	"fmt"
+	"github.com/go-ldap/ldap/v3"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	mock "github.com/stretchr/testify/mock"
-	"gopkg.in/ldap.v3"
 )
 
 func contains(s []string, e string) bool {

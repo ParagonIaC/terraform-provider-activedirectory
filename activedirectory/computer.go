@@ -2,10 +2,10 @@ package activedirectory
 
 import (
 	"fmt"
+	"github.com/go-ldap/ldap/v3"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/ldap.v3"
 )
 
 // Computer is the base implementation of ad computer object

@@ -3,11 +3,11 @@ package activedirectory
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/go-ldap/ldap/v3"
 	"regexp"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/ldap.v3"
 )
 
 // APIInterface is the basic interface for AD API
@@ -36,6 +36,17 @@ type APIInterface interface {
 	updateOUName(name, baseOU, newName string) error
 	updateOUDescription(cn, baseOU, description string) error
 	deleteOU(dn string) error
+
+	getMembersManagedByTerraform(membersFromLdap []string, membersFromTerraform []string, ignoreMembersUnknownByTerraform bool) []string
+	getGroup(name, baseOU, userBase string, member []string, ignoreMembersUnknownByTerraform bool) (*Group, error)
+	getGroupMemberNames(groupDn, userBase string) ([]string, error)
+	getGroupMemberDNByName(names []string, userBase string) ([]string, error)
+	createGroup(name, baseOU, description, userBase string, member []string, ignoreMembersUnknownByTerraform bool) error
+	updateGroupDescription(cn, baseOU, description string) error
+	updateGroupMembers(cn, baseOU, userBase string, oldMembers, newMembers []string, ignoreMembersUnknownByTerraform bool) error
+	deleteGroup(cn string) error
+	renameGroup(oldName, baseOu, newName string) error
+	moveGroup(newName, oldOU, newOU string) error
 }
 
 // API is the basic struct which should implement the interface
@@ -68,6 +79,8 @@ func (api *API) connect() error {
 
 	client, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", api.host, api.port))
 	if err != nil {
+
+
 		return fmt.Errorf("connect - failed to connect: %s", err)
 	}
 

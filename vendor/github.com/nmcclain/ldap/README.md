@@ -11,7 +11,7 @@ The **server** portion implements Bind and Search from [RFC4510](http://tools.ie
 
 ### A simple LDAP bind operation:
 ```go
-l, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", ldapServer, adPort))
+l, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", ldapServer, ldapPort))
 // be sure to add error checking!
 defer l.Close()
 err = l.Bind(user, passwd)

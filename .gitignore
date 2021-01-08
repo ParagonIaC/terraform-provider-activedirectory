@@ -1,29 +1,37 @@
-#  Local .terraform directories
-**/.terraform/*
+*.dll
+*.exe
+.DS_Store
+example.tf
+terraform.tfplan
+terraform.tfstate
+bin/
+dist/
+modules-dev/
+/pkg/
+website/.vagrant
+website/.bundle
+website/build
+website/node_modules
+.vagrant/
+*.backup
+./*.tfstate
+.terraform/
+*.log
+*.bak
+*~
+.*.swp
+.idea
+*.iml
+*.test
+*.iml
+vendor/*
+website/vendor
+examples/.*
+# Test exclusions
+!command/test-fixtures/**/*.tfstate
+!command/test-fixtures/**/.terraform/
 
-# .tfstate files
-*.tfstate
-*.tfstate.*
-
-# .tfvars files
-*.tfvars
-
-# testing stuff
-**/.testing/*
-
-# provider file
-terraform-provider-activedirectory
-
-# test coverage
-coverage.txt
-
-# ignore release build
-**/dist/*
-
-# goland idea files
-.idea/*
-
-
-_site
-.sass-cache
-.jekyll-metadata
+# Keep windows files with windows line endings
+*.winfile eol=crlf
+**/testacc.env
+examples/terraform.tfvars

@@ -1,63 +1,43 @@
-TEST?=./...
-PKG_NAME=activedirectory
+TEST?=$$(go list ./... | grep -v 'vendor')
+NAME=activedirectory
+BINARY=terraform-provider-${NAME}
+OS_ARCH=linux_amd64
+VERSION=0.7.0
+HOST=registry.terraform.io
+NAMESPACE=hashicorp
 
-default: build
+ifneq ("$(wildcard ./testacc.env)","")
+	include testacc.env
+	export $(shell sed 's/=.*//' testacc.env)
+endif
 
-build: fmtcheck lint
-	go install
+default: install
 
-test: fmtcheck
-	gotestsum -f short-verbose -- -coverprofile=coverage.txt ./...
+build:
+	go build -o ${BINARY}
 
-testacc: fmtcheck
-	TF_ACC=1 go test $(TEST) -v -count 1 -parallel 20 -timeout 120m -run '^(TestAcc.*)$$'
+release:
+	GOOS=darwin GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_darwin_amd64
+	GOOS=freebsd GOARCH=386 go build -o ./bin/${BINARY}_${VERSION}_freebsd_386
+	GOOS=freebsd GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_freebsd_amd64
+	GOOS=freebsd GOARCH=arm go build -o ./bin/${BINARY}_${VERSION}_freebsd_arm
+	GOOS=linux GOARCH=386 go build -o ./bin/${BINARY}_${VERSION}_linux_386
+	GOOS=linux GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_linux_amd64
+	GOOS=linux GOARCH=arm go build -o ./bin/${BINARY}_${VERSION}_linux_arm
+	GOOS=openbsd GOARCH=386 go build -o ./bin/${BINARY}_${VERSION}_openbsd_386
+	GOOS=openbsd GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_openbsd_amd64
+	GOOS=solaris GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_solaris_amd64
+	GOOS=windows GOARCH=386 go build -o ./bin/${BINARY}_${VERSION}_windows_386
+	GOOS=windows GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_windows_amd64
 
-fmt:
-	@echo "==> Fixing source code with gofmt..."
-	@gofmt -s -w ./$(PKG_NAME)
+install: build
+	mkdir -p ~/.terraform.d/plugins/${HOST}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
+	mv ${BINARY} ~/.terraform.d/plugins/${HOST}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 
-fmtcheck:
-	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
+test:
+	go test -i $(TEST) || exit 1
+	echo $(TEST) | xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
-lint:
-	@echo "==> Checking source code against linters..."
-	@golangci-lint run ./$(PKG_NAME)/...
-	@tfproviderlint \
-		-c 1 \
-		-AT001 \
-		-AT002 \
-		-AT003 \
-		-AT004 \
-		-R001 \
-		-R002 \
-		-R003 \
-		-R004 \
-		-S001 \
-		-S002 \
-		-S003 \
-		-S004 \
-		-S005 \
-		-S006 \
-		-S007 \
-		-S008 \
-		-S009 \
-		-S010 \
-		-S011 \
-		-S012 \
-		-S013 \
-		-S014 \
-		-S015 \
-		-S016 \
-		-S017 \
-		-S018 \
-		-S019 \
-		./$(PKG_NAME)
-
-tools:
-	GO111MODULE=on go install github.com/bflad/tfproviderlint/cmd/tfproviderlint
-	GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint
-
-compress:
-	(which /usr/bin/upx > /dev/null && find dist/*/* | xargs -I{} -n1 -P 4 /usr/bin/upx --brute "{}") || echo "not using upx for binary compression"
-
-.PHONY: default build fmt lint tools compress
+testacc:
+	TF_ACC=1 \
+	go test $(TEST) -v $(TESTARGS) -timeout 120m

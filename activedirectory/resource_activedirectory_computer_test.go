@@ -2,18 +2,18 @@ package activedirectory
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-// acceptance tests
+//acceptance tests
 func TestAccADComputer_basic(t *testing.T) {
 	ou := strings.ToLower(os.Getenv("AD_TEST_BASE_OU"))
 	name := strings.ToLower(fmt.Sprintf("testacc-%s", getRandomString(3)))
@@ -22,19 +22,19 @@ func TestAccADComputer_basic(t *testing.T) {
 	var computer Computer
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckADComputerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckADComputerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceADComputerTestData(ou, name, description),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckADComputerExists("activedirectory_computer.test", &computer),
+					testAccCheckADComputerExists(ResourcesNameComputer+".test", &computer),
 					testAccCheckADComputerAttributes(&computer, ou, name, description),
-					resource.TestCheckResourceAttr("activedirectory_computer.test", "ou", ou),
-					resource.TestCheckResourceAttr("activedirectory_computer.test", "name", name),
-					resource.TestCheckResourceAttr("activedirectory_computer.test", "description", description),
-					resource.TestCheckResourceAttr("activedirectory_computer.test", "id", fmt.Sprintf("cn=%s,%s", name, ou)),
+					resource.TestCheckResourceAttr(ResourcesNameComputer+".test", "ou", ou),
+					resource.TestCheckResourceAttr(ResourcesNameComputer+".test", "name", name),
+					resource.TestCheckResourceAttr(ResourcesNameComputer+".test", "description", description),
+					resource.TestCheckResourceAttr(ResourcesNameComputer+".test", "id", fmt.Sprintf("cn=%s,%s", name, ou)),
 				),
 			},
 		},
@@ -46,34 +46,34 @@ func TestAccADComputer_update(t *testing.T) {
 	name := strings.ToLower(fmt.Sprintf("testacc-%s", getRandomString(3)))
 	description := getRandomString(10)
 
-	updatedOU := "ou=update," + ou
+	updateName := name + "_update"
 	updatedDescription := description + "_updated"
 
 	var computer Computer
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckADComputerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckADComputerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceADComputerTestData(ou, name, description),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckADComputerExists("activedirectory_computer.test", &computer),
+					testAccCheckADComputerExists(ResourcesNameComputer+".test", &computer),
 					testAccCheckADComputerAttributes(&computer, ou, name, description),
-					resource.TestCheckResourceAttr("activedirectory_computer.test", "ou", ou),
-					resource.TestCheckResourceAttr("activedirectory_computer.test", "name", name),
-					resource.TestCheckResourceAttr("activedirectory_computer.test", "description", description),
-					resource.TestCheckResourceAttr("activedirectory_computer.test", "id", fmt.Sprintf("cn=%s,%s", name, ou)),
+					resource.TestCheckResourceAttr(ResourcesNameComputer+".test", "ou", ou),
+					resource.TestCheckResourceAttr(ResourcesNameComputer+".test", "name", name),
+					resource.TestCheckResourceAttr(ResourcesNameComputer+".test", "description", description),
+					resource.TestCheckResourceAttr(ResourcesNameComputer+".test", "id", fmt.Sprintf("cn=%s,%s", name, ou)),
 				),
 			},
 			{
-				Config: testAccResourceADComputerTestData(updatedOU, name, updatedDescription),
+				Config: testAccResourceADComputerTestData(ou, updateName, updatedDescription),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckADComputerExists("activedirectory_computer.test", &computer),
-					testAccCheckADComputerAttributes(&computer, updatedOU, name, updatedDescription),
-					resource.TestCheckResourceAttr("activedirectory_computer.test", "ou", updatedOU),
-					resource.TestCheckResourceAttr("activedirectory_computer.test", "description", updatedDescription),
+					testAccCheckADComputerExists(ResourcesNameComputer+".test", &computer),
+					testAccCheckADComputerAttributes(&computer, ou, updateName, updatedDescription),
+					resource.TestCheckResourceAttr(ResourcesNameComputer+".test", "name", updateName),
+					resource.TestCheckResourceAttr(ResourcesNameComputer+".test", "description", updatedDescription),
 				),
 			},
 		},
@@ -82,10 +82,13 @@ func TestAccADComputer_update(t *testing.T) {
 
 // acceptance test helpers
 func testAccCheckADComputerDestroy(s *terraform.State) error {
-	api := testAccProvider.Meta().(*API)
+	api, err := getTestConnection()
+	if err != nil {
+		return err
+	}
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "activedirectory_computer" {
+		if rs.Type != ResourcesNameComputer {
 			continue
 		}
 
@@ -113,7 +116,10 @@ func testAccCheckADComputerExists(resourceName string, computer *Computer) resou
 			return fmt.Errorf("AD computer ID is not set")
 		}
 
-		api := testAccProvider.Meta().(*API)
+		api, err := getTestConnection()
+		if err != nil {
+			return err
+		}
 		_computer, err := api.getComputer(rs.Primary.Attributes["name"])
 
 		if err != nil {
@@ -170,13 +176,15 @@ func testAccPreCheck(t *testing.T) {
 // acceptance test data
 func testAccResourceADComputerTestData(ou, name, description string) string {
 	return fmt.Sprintf(`
-resource "activedirectory_computer" "test" {
+%s
+
+resource %s "test" {
 	ou           = "%s"
 	name         = "%s"
 	description  = "%s"
 }
 	`,
-		ou, name, description,
+		TerraformProviderRequestSection(), ResourcesNameComputer, ou, name, description,
 	)
 }
 
@@ -221,9 +229,9 @@ func TestResourceADComputerObjectCreate(t *testing.T) {
 		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADComputerObjectCreate(resourceLocalData, api)
+		err := resourceADComputerObjectCreate(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 	})
 
 	t.Run("resourceADComputerObjectCreate - should return error when creating failed", func(t *testing.T) {
@@ -231,9 +239,9 @@ func TestResourceADComputerObjectCreate(t *testing.T) {
 		api.On("createComputer", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADComputerObjectCreate(resourceLocalData, api)
+		err := resourceADComputerObjectCreate(nil, resourceLocalData, api)
 
-		assert.Error(t, err)
+		assert.True(t, err.HasError())
 	})
 
 	t.Run("resourceADComputerObjectCreate - id should be set to dn", func(t *testing.T) {
@@ -242,9 +250,9 @@ func TestResourceADComputerObjectCreate(t *testing.T) {
 		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADComputerObjectCreate(resourceLocalData, api)
+		err := resourceADComputerObjectCreate(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 		assert.True(t, strings.EqualFold(resourceLocalData.Id(), testComputer.dn))
 	})
 }
@@ -272,9 +280,9 @@ func TestResourceADComputerObjectRead(t *testing.T) {
 		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADComputerObjectRead(resourceLocalData, api)
+		err := resourceADComputerObjectRead(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 	})
 
 	t.Run("resourceADComputerObjectRead - should return error when reading failed", func(t *testing.T) {
@@ -282,9 +290,9 @@ func TestResourceADComputerObjectRead(t *testing.T) {
 		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADComputerObjectRead(resourceLocalData, api)
+		err := resourceADComputerObjectRead(nil, resourceLocalData, api)
 
-		assert.Error(t, err)
+		assert.True(t, err.HasError())
 	})
 
 	t.Run("resourceADComputerObjectRead - should return nil and id set to nil when not found", func(t *testing.T) {
@@ -292,9 +300,9 @@ func TestResourceADComputerObjectRead(t *testing.T) {
 		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADComputerObjectRead(resourceLocalData, api)
+		err := resourceADComputerObjectRead(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 		assert.Equal(t, resourceLocalData.Id(), "")
 	})
 
@@ -303,9 +311,9 @@ func TestResourceADComputerObjectRead(t *testing.T) {
 		api.On("getComputer", mock.Anything, mock.Anything, mock.Anything).Return(testComputer, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADComputerObjectRead(resourceLocalData, api)
+		err := resourceADComputerObjectRead(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 		assert.Equal(t, resourceLocalData.Get("description").(string), testComputer.description)
 	})
 }
@@ -335,9 +343,9 @@ func TestResourceADComputerObjectUpdate(t *testing.T) {
 		api.On("updateComputerOU", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADComputerObjectUpdate(resourceLocalData, api)
+		err := resourceADComputerObjectUpdate(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 	})
 
 	t.Run("resourceADComputerObjectUpdate - should return error when updateComputerDescription fails", func(t *testing.T) {
@@ -346,9 +354,9 @@ func TestResourceADComputerObjectUpdate(t *testing.T) {
 		api.On("updateComputerDescription", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADComputerObjectUpdate(resourceLocalData, api)
+		err := resourceADComputerObjectUpdate(nil, resourceLocalData, api)
 
-		assert.Error(t, err)
+		assert.True(t, err.HasError())
 	})
 
 	t.Run("resourceADComputerObjectUpdate - should return error when updateComputerOU fails", func(t *testing.T) {
@@ -358,9 +366,9 @@ func TestResourceADComputerObjectUpdate(t *testing.T) {
 		api.On("updateComputerOU", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADComputerObjectUpdate(resourceLocalData, api)
+		err := resourceADComputerObjectUpdate(nil, resourceLocalData, api)
 
-		assert.Error(t, err)
+		assert.True(t, err.HasError())
 	})
 }
 
@@ -381,9 +389,9 @@ func TestResourceADComputerObjectDelete(t *testing.T) {
 		api.On("deleteComputer", mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADComputerObjectDelete(resourceLocalData, api)
+		err := resourceADComputerObjectDelete(nil, resourceLocalData, api)
 
-		assert.Error(t, err)
+		assert.True(t, err.HasError())
 	})
 
 	t.Run("resourceADComputerObjectDelete - should return nil if deleting was successful", func(t *testing.T) {
@@ -391,8 +399,8 @@ func TestResourceADComputerObjectDelete(t *testing.T) {
 		api.On("deleteComputer", mock.Anything, mock.Anything).Return(nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADComputerObjectDelete(resourceLocalData, api)
+		err := resourceADComputerObjectDelete(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 	})
 }

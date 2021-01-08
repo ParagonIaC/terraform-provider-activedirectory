@@ -1,51 +1,100 @@
 package activedirectory
 
 import (
+	"fmt"
+	"github.com/go-ldap/ldap/v3"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/stretchr/testify/assert"
+	"os"
+	"strconv"
 	"testing"
 	"time"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/stretchr/testify/assert"
-	"gopkg.in/ldap.v3"
 )
 
-// acceptance tests
-var testAccProviders map[string]terraform.ResourceProvider // nolint:gochecknoglobals // Need it for Acc tests
-var testAccProvider *schema.Provider                       // nolint:gochecknoglobals // Need it for Acc tests
+var testAccProviders map[string]*schema.Provider
+var testAccProvider *schema.Provider
+var testAccProviderFactories map[string]func() (*schema.Provider, error)
 
-func init() { // nolint:gochecknoinits // Used init function for some reason
-	testAccProvider = Provider().(*schema.Provider)
-	testAccProviders = map[string]terraform.ResourceProvider{
-		"activedirectory": testAccProvider,
+func TerraformProviderRequestSection() string {
+	return fmt.Sprintf(`
+terraform {
+  required_providers {
+    %s = {
+      source = "%s"
+    }
+  }
+}
+`, ProviderNameAd, ProviderSource)
+}
+
+func getTestConnection() (*API, error) {
+	host := os.Getenv("AD_HOST")
+	port, err := strconv.Atoi(os.Getenv("AD_PORT"))
+	if err != nil {
+		return nil, err
+	}
+	domain := os.Getenv("AD_DOMAIN")
+
+	useTls, err := strconv.ParseBool(os.Getenv("AD_USE_TLS"))
+	if err != nil {
+		return nil, err
+	}
+	insecure, err := strconv.ParseBool(os.Getenv("AD_NO_CERT_VERIFY"))
+	if err != nil {
+		return nil, err
+	}
+	user := os.Getenv("AD_USER")
+	password := os.Getenv("AD_PASSWORD")
+	api := &API{
+		host:     host,
+		port:     port,
+		domain:   domain,
+		useTLS:   useTls,
+		insecure: insecure,
+		user:     user,
+		password: password,
+	}
+	if err := api.connect(); err != nil {
+		return nil, err
+	}
+	return api, nil
+}
+
+func init() {
+	testAccProvider = New("dev")()
+	testAccProviders = map[string]*schema.Provider{
+		ProviderNameAd: testAccProvider,
+	}
+	testAccProviderFactories = map[string]func() (*schema.Provider, error){
+		ProviderNameAd: func() (*schema.Provider, error) { return New("dev")(), nil },
 	}
 }
 
 // unit tests
 func TestProvider(t *testing.T) {
 	t.Run("Provider - Should return a valid 'schema.Provider'", func(t *testing.T) {
-		response := Provider()
+		response := New("dev")()
 
 		assert.NotNil(t, response)
 		assert.IsType(t, &schema.Provider{}, response)
 
-		assert.Equal(t, schema.TypeString, response.(*schema.Provider).Schema["host"].Type)
-		assert.Equal(t, true, response.(*schema.Provider).Schema["host"].Required)
+		assert.Equal(t, schema.TypeString, response.Schema["host"].Type)
+		assert.Equal(t, true, response.Schema["host"].Required)
 
-		assert.Equal(t, schema.TypeString, response.(*schema.Provider).Schema["domain"].Type)
-		assert.Equal(t, true, response.(*schema.Provider).Schema["domain"].Required)
+		assert.Equal(t, schema.TypeString, response.Schema["domain"].Type)
+		assert.Equal(t, true, response.Schema["domain"].Required)
 
-		assert.Equal(t, schema.TypeInt, response.(*schema.Provider).Schema["port"].Type)
-		assert.Equal(t, false, response.(*schema.Provider).Schema["port"].Required)
+		assert.Equal(t, schema.TypeInt, response.Schema["port"].Type)
+		assert.Equal(t, false, response.Schema["port"].Required)
 
-		assert.Equal(t, schema.TypeBool, response.(*schema.Provider).Schema["use_tls"].Type)
-		assert.Equal(t, false, response.(*schema.Provider).Schema["use_tls"].Required)
+		assert.Equal(t, schema.TypeBool, response.Schema["use_tls"].Type)
+		assert.Equal(t, false, response.Schema["use_tls"].Required)
 
-		assert.Equal(t, schema.TypeString, response.(*schema.Provider).Schema["user"].Type)
-		assert.Equal(t, true, response.(*schema.Provider).Schema["user"].Required)
+		assert.Equal(t, schema.TypeString, response.Schema["user"].Type)
+		assert.Equal(t, true, response.Schema["user"].Required)
 
-		assert.Equal(t, schema.TypeString, response.(*schema.Provider).Schema["password"].Type)
-		assert.Equal(t, true, response.(*schema.Provider).Schema["password"].Required)
+		assert.Equal(t, schema.TypeString, response.Schema["password"].Type)
+		assert.Equal(t, true, response.Schema["password"].Required)
 	})
 }
 
@@ -59,7 +108,7 @@ func TestProviderConfigure(t *testing.T) {
 	time.Sleep(1000 * time.Millisecond)
 
 	t.Run("providerConfigure - Should return an api object when connection to AD was successful", func(t *testing.T) {
-		resourceSchema := Provider().(*schema.Provider).Schema
+		resourceSchema := New("dev")().Schema
 		resourceDataMap := map[string]interface{}{
 			"user":     "Tester",
 			"password": "Password",
@@ -70,9 +119,9 @@ func TestProviderConfigure(t *testing.T) {
 		}
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 
-		api, err := providerConfigure(resourceLocalData)
+		api, err := providerConfigure(nil, resourceLocalData)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 		assert.IsType(t, &API{}, api)
 
 		assert.IsType(t, &ldap.Conn{}, api.(*API).client)
@@ -83,7 +132,7 @@ func TestProviderConfigure(t *testing.T) {
 	})
 
 	t.Run("providerConfigure - Should return a error when connection to AD failed", func(t *testing.T) {
-		resourceSchema := Provider().(*schema.Provider).Schema
+		resourceSchema := New("dev")().Schema
 		resourceDataMap := map[string]interface{}{
 			"user":     "Tester",
 			"password": "wrong",
@@ -94,9 +143,9 @@ func TestProviderConfigure(t *testing.T) {
 		}
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
 
-		api, err := providerConfigure(resourceLocalData)
+		api, err := providerConfigure(nil, resourceLocalData)
 
-		assert.Error(t, err)
+		assert.True(t, err.HasError())
 		assert.Nil(t, api)
 	})
 }

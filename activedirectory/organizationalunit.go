@@ -2,10 +2,11 @@ package activedirectory
 
 import (
 	"fmt"
+	"github.com/go-ldap/ldap/v3"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/ldap.v3"
+
 )
 
 // OU is the base implementation of ad organizational unit object
@@ -56,12 +57,13 @@ func (api *API) createOU(name, baseOU, description string) error {
 
 	// there is already an ou object with the same name
 	if tmp != nil {
-		if tmp.name == name && tmp.dn == fmt.Sprintf("ou=%s,%s", name, baseOU) {
+
+		if tmp.name == name && tmp.dn == fmt.Sprintf("OU=%s,%s", name, baseOU) {
 			log.Infof("OU object %s already exists, updating description", name)
 			return api.updateOUDescription(name, baseOU, description)
 		}
 
-		return fmt.Errorf("createOU - ou object %s already exists under this base ou %s", name, baseOU)
+		return fmt.Errorf("createOU - ou object %s already exists under this base ou %s, %s ==  %s", name, baseOU,tmp.dn,fmt.Sprintf("ou=%s,%s", name, baseOU))
 	}
 
 	attributes := make(map[string][]string)

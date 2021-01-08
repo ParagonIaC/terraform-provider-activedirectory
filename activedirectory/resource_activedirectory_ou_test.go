@@ -2,39 +2,40 @@ package activedirectory
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"os"
 	"strings"
 	"testing"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"time"
 )
 
 // acceptance tests
 func TestAccADOU_basic(t *testing.T) {
-	ou := strings.ToLower(os.Getenv("AD_TEST_BASE_OU"))
+	baseOu := strings.ToLower(os.Getenv("AD_TEST_BASE_OU"))
 	name := strings.ToLower(fmt.Sprintf("testacc_%s", getRandomString(3)))
+	dn := "ou=" + name + "," + baseOu
 	description := getRandomString(10)
 
 	var ouObject OU
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckOU(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckADOUDestroy,
+		PreCheck:          func() { testAccPreCheckOU(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckADOUDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADOUTestData(ou, name, description),
+				Config: testAccResourceADOUTestData(baseOu, name, description),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckADOUExists("activedirectory_ou.test", &ouObject),
-					testAccCheckADOUAttributes(&ouObject, ou, name, description),
-					resource.TestCheckResourceAttr("activedirectory_ou.test", "base_ou", ou),
-					resource.TestCheckResourceAttr("activedirectory_ou.test", "name", name),
-					resource.TestCheckResourceAttr("activedirectory_ou.test", "description", description),
-					resource.TestCheckResourceAttr("activedirectory_ou.test", "id", fmt.Sprintf("ou=%s,%s", name, ou)),
+					testAccCheckADOUExists(ResourcesNameOrganizationUnit+".test", &ouObject),
+					testAccCheckADOUAttributes(&ouObject, baseOu, name, description),
+					resource.TestCheckResourceAttr(ResourcesNameOrganizationUnit+".test", "base_ou", baseOu),
+					resource.TestCheckResourceAttr(ResourcesNameOrganizationUnit+".test", "name", name),
+					resource.TestCheckResourceAttr(ResourcesNameOrganizationUnit+".test", "description", description),
+					resource.TestCheckResourceAttr(ResourcesNameOrganizationUnit+".test", "id", dn),
 				),
 			},
 		},
@@ -42,40 +43,39 @@ func TestAccADOU_basic(t *testing.T) {
 }
 
 func TestAccADOU_update(t *testing.T) {
-	ou := strings.ToLower(os.Getenv("AD_TEST_BASE_OU"))
+	baseOu := strings.ToLower(os.Getenv("AD_TEST_BASE_OU"))
 	name := strings.ToLower(fmt.Sprintf("testacc_%s", getRandomString(3)))
 	description := getRandomString(10)
 
 	updatedName := fmt.Sprintf("update_%s", name)
-	updatedOU := "ou=update," + ou
 	updatedDescription := description + "_updated"
 
 	var ouObject OU
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckOU(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckADOUDestroy,
+		PreCheck:          func() { testAccPreCheckOU(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckADOUDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceADOUTestData(ou, name, description),
+				Config: testAccResourceADOUTestData(baseOu, name, description),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckADOUExists("activedirectory_ou.test", &ouObject),
-					testAccCheckADOUAttributes(&ouObject, ou, name, description),
-					resource.TestCheckResourceAttr("activedirectory_ou.test", "base_ou", ou),
-					resource.TestCheckResourceAttr("activedirectory_ou.test", "name", name),
-					resource.TestCheckResourceAttr("activedirectory_ou.test", "description", description),
-					resource.TestCheckResourceAttr("activedirectory_ou.test", "id", fmt.Sprintf("ou=%s,%s", name, ou)),
+					testAccCheckADOUExists(ResourcesNameOrganizationUnit+".test", &ouObject),
+					testAccCheckADOUAttributes(&ouObject, baseOu, name, description),
+					resource.TestCheckResourceAttr(ResourcesNameOrganizationUnit+".test", "base_ou", baseOu),
+					resource.TestCheckResourceAttr(ResourcesNameOrganizationUnit+".test", "name", name),
+					resource.TestCheckResourceAttr(ResourcesNameOrganizationUnit+".test", "description", description),
+					resource.TestCheckResourceAttr(ResourcesNameOrganizationUnit+".test", "id", fmt.Sprintf("ou=%s,%s", name, baseOu)),
 				),
 			},
 			{
-				Config: testAccResourceADOUTestData(updatedOU, updatedName, updatedDescription),
+				Config: testAccResourceADOUTestData(baseOu, updatedName, updatedDescription),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckADOUExists("activedirectory_ou.test", &ouObject),
-					testAccCheckADOUAttributes(&ouObject, updatedOU, updatedName, updatedDescription),
-					resource.TestCheckResourceAttr("activedirectory_ou.test", "base_ou", updatedOU),
-					resource.TestCheckResourceAttr("activedirectory_ou.test", "name", updatedName),
-					resource.TestCheckResourceAttr("activedirectory_ou.test", "description", updatedDescription),
+					testAccCheckADOUExists(ResourcesNameOrganizationUnit+".test", &ouObject),
+					testAccCheckADOUAttributes(&ouObject, baseOu, updatedName, updatedDescription),
+					resource.TestCheckResourceAttr(ResourcesNameOrganizationUnit+".test", "base_ou", baseOu),
+					resource.TestCheckResourceAttr(ResourcesNameOrganizationUnit+".test", "name", updatedName),
+					resource.TestCheckResourceAttr(ResourcesNameOrganizationUnit+".test", "description", updatedDescription),
 				),
 			},
 		},
@@ -84,10 +84,13 @@ func TestAccADOU_update(t *testing.T) {
 
 // acceptance test helpers
 func testAccCheckADOUDestroy(s *terraform.State) error {
-	api := testAccProvider.Meta().(*API)
+	api, err := getTestConnection()
+	if err != nil {
+		return err
+	}
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "activedirectory_ou" {
+		if rs.Type != ResourcesNameOrganizationUnit {
 			continue
 		}
 
@@ -115,18 +118,32 @@ func testAccCheckADOUExists(resourceName string, ou *OU) resource.TestCheckFunc 
 			return fmt.Errorf("AD ou ID is not set")
 		}
 
-		api := testAccProvider.Meta().(*API)
-		tmpOU, err := api.getOU(rs.Primary.Attributes["name"], rs.Primary.Attributes["base_ou"])
-
+		api, err := getTestConnection()
+		defer api.client.Close()
 		if err != nil {
 			return err
 		}
 
+		tmpOU, err := api.getOU(rs.Primary.Attributes["name"], rs.Primary.Attributes["base_ou"])
+		timout := 5
+		for tmpOU.dn == "" && timout > 0 && err == nil {
+			tmpOU, err = api.getOU(rs.Primary.Attributes["name"], rs.Primary.Attributes["base_ou"])
+			time.Sleep(1 * time.Second)
+			timout--
+		}
+		if timout < 0 {
+			return fmt.Errorf("OU was not created in AD")
+		}
+
+		if err != nil {
+			return err
+		}
 		*ou = *tmpOU
 		return nil
 	}
 }
 
+//
 func testAccCheckADOUAttributes(ouObject *OU, ou, name, description string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if !strings.EqualFold(ouObject.name, name) {
@@ -169,17 +186,21 @@ func testAccPreCheckOU(t *testing.T) {
 	}
 }
 
+
 // acceptance test data
 func testAccResourceADOUTestData(ou, name, description string) string {
-	return fmt.Sprintf(`
-resource "activedirectory_ou" "test" {
+	testConfig := fmt.Sprintf(`
+%s
+
+resource "%s" "test" {
 	base_ou      = "%s"
 	name         = "%s"
 	description  = "%s"
 }
 	`,
-		ou, name, description,
+		TerraformProviderRequestSection(), ResourcesNameOrganizationUnit, ou, name, description,
 	)
+	return testConfig
 }
 
 // unit tests
@@ -223,9 +244,9 @@ func TestResourceADOUObjectCreate(t *testing.T) {
 		api.On("getOU", mock.Anything, mock.Anything).Return(testOU, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADOUObjectCreate(resourceLocalData, api)
+		err := resourceADOUObjectCreate(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 	})
 
 	t.Run("resourceADOUObjectCreate - should return error when creating failed", func(t *testing.T) {
@@ -233,9 +254,9 @@ func TestResourceADOUObjectCreate(t *testing.T) {
 		api.On("createOU", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADOUObjectCreate(resourceLocalData, api)
+		err := resourceADOUObjectCreate(nil, resourceLocalData, api)
 
-		assert.Error(t, err)
+		assert.True(t, err.HasError())
 	})
 
 	t.Run("resourceADOUObjectCreate - id should be set to dn", func(t *testing.T) {
@@ -245,9 +266,9 @@ func TestResourceADOUObjectCreate(t *testing.T) {
 		api.On("getOU", mock.Anything, mock.Anything).Return(testOU, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADOUObjectCreate(resourceLocalData, api)
+		err := resourceADOUObjectCreate(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 		assert.True(t, strings.EqualFold(resourceLocalData.Id(), testOU.dn))
 	})
 }
@@ -275,9 +296,9 @@ func TestResourceADOUObjectRead(t *testing.T) {
 		api.On("getOU", mock.Anything, mock.Anything).Return(testOU, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADOUObjectRead(resourceLocalData, api)
+		err := resourceADOUObjectRead(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 	})
 
 	t.Run("resourceADOUObjectRead - should return error when reading failed", func(t *testing.T) {
@@ -285,9 +306,9 @@ func TestResourceADOUObjectRead(t *testing.T) {
 		api.On("getOU", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADOUObjectRead(resourceLocalData, api)
+		err := resourceADOUObjectRead(nil, resourceLocalData, api)
 
-		assert.Error(t, err)
+		assert.True(t, err.HasError())
 	})
 
 	t.Run("resourceADOUObjectRead - should return nil and id set to nil when not found", func(t *testing.T) {
@@ -295,9 +316,9 @@ func TestResourceADOUObjectRead(t *testing.T) {
 		api.On("getOU", mock.Anything, mock.Anything).Return(nil, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADOUObjectRead(resourceLocalData, api)
+		err := resourceADOUObjectRead(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 		assert.Equal(t, resourceLocalData.Id(), "")
 	})
 
@@ -306,9 +327,9 @@ func TestResourceADOUObjectRead(t *testing.T) {
 		api.On("getOU", mock.Anything, mock.Anything).Return(testOU, nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADOUObjectRead(resourceLocalData, api)
+		err := resourceADOUObjectRead(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 		assert.Equal(t, resourceLocalData.Get("description").(string), testOU.description)
 	})
 }
@@ -339,9 +360,9 @@ func TestResourceADOUObjectUpdate(t *testing.T) {
 		api.On("moveOU", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADOUObjectUpdate(resourceLocalData, api)
+		err := resourceADOUObjectUpdate(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 	})
 
 	t.Run("resourceADOUObjectUpdate - should return error when updateOUDescription fails", func(t *testing.T) {
@@ -350,9 +371,9 @@ func TestResourceADOUObjectUpdate(t *testing.T) {
 		api.On("updateOUDescription", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADOUObjectUpdate(resourceLocalData, api)
+		err := resourceADOUObjectUpdate(nil, resourceLocalData, api)
 
-		assert.Error(t, err)
+		assert.True(t, err.HasError())
 	})
 
 	t.Run("resourceADOUObjectUpdate - should return error when moveOU fails", func(t *testing.T) {
@@ -363,9 +384,9 @@ func TestResourceADOUObjectUpdate(t *testing.T) {
 		api.On("moveOU", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADOUObjectUpdate(resourceLocalData, api)
+		err := resourceADOUObjectUpdate(nil, resourceLocalData, api)
 
-		assert.Error(t, err)
+		assert.True(t, err.HasError())
 	})
 
 	t.Run("resourceADOUObjectUpdate - should return error when updateOUName fails", func(t *testing.T) {
@@ -375,9 +396,9 @@ func TestResourceADOUObjectUpdate(t *testing.T) {
 		api.On("updateOUDescription", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADOUObjectUpdate(resourceLocalData, api)
+		err := resourceADOUObjectUpdate(nil, resourceLocalData, api)
 
-		assert.Error(t, err)
+		assert.True(t, err.HasError())
 	})
 }
 
@@ -398,9 +419,9 @@ func TestResourceADOUObjectDelete(t *testing.T) {
 		api.On("deleteOU", mock.Anything).Return(fmt.Errorf("error"))
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADOUObjectDelete(resourceLocalData, api)
+		err := resourceADOUObjectDelete(nil, resourceLocalData, api)
 
-		assert.Error(t, err)
+		assert.True(t, err.HasError())
 	})
 
 	t.Run("resourceADOUObjectDelete - should return nil if deleting was successful", func(t *testing.T) {
@@ -408,8 +429,8 @@ func TestResourceADOUObjectDelete(t *testing.T) {
 		api.On("deleteOU", mock.Anything).Return(nil)
 
 		resourceLocalData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-		err := resourceADOUObjectDelete(resourceLocalData, api)
+		err := resourceADOUObjectDelete(nil, resourceLocalData, api)
 
-		assert.NoError(t, err)
+		assert.False(t, err.HasError())
 	})
 }

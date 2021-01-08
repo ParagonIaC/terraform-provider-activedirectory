@@ -37,6 +37,20 @@ func (_m *MockAPIInterface) createComputer(cn string, ou string, description str
 	return r0
 }
 
+// createGroup provides a mock function with given fields: name, baseOU, description, userBase, member, ignoreMembersUnknownByTerraform
+func (_m *MockAPIInterface) createGroup(name string, baseOU string, description string, userBase string, member []string, ignoreMembersUnknownByTerraform bool) error {
+	ret := _m.Called(name, baseOU, description, userBase, member, ignoreMembersUnknownByTerraform)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string, []string, bool) error); ok {
+		r0 = rf(name, baseOU, description, userBase, member, ignoreMembersUnknownByTerraform)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // createOU provides a mock function with given fields: name, baseOU, description
 func (_m *MockAPIInterface) createOU(name string, baseOU string, description string) error {
 	ret := _m.Called(name, baseOU, description)
@@ -72,6 +86,20 @@ func (_m *MockAPIInterface) deleteComputer(cn string, ou string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(cn, ou)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// deleteGroup provides a mock function with given fields: cn
+func (_m *MockAPIInterface) deleteGroup(cn string) error {
+	ret := _m.Called(cn)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(cn)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -144,6 +172,91 @@ func (_m *MockAPIInterface) getDomainDN() string {
 	return r0
 }
 
+// getGroup provides a mock function with given fields: name, baseOU, userBase, member, ignoreMembersUnknownByTerraform
+func (_m *MockAPIInterface) getGroup(name string, baseOU string, userBase string, member []string, ignoreMembersUnknownByTerraform bool) (*Group, error) {
+	ret := _m.Called(name, baseOU, userBase, member, ignoreMembersUnknownByTerraform)
+
+	var r0 *Group
+	if rf, ok := ret.Get(0).(func(string, string, string, []string, bool) *Group); ok {
+		r0 = rf(name, baseOU, userBase, member, ignoreMembersUnknownByTerraform)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*Group)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string, []string, bool) error); ok {
+		r1 = rf(name, baseOU, userBase, member, ignoreMembersUnknownByTerraform)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// getGroupMemberDNByName provides a mock function with given fields: names, userBase
+func (_m *MockAPIInterface) getGroupMemberDNByName(names []string, userBase string) ([]string, error) {
+	ret := _m.Called(names, userBase)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func([]string, string) []string); ok {
+		r0 = rf(names, userBase)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
+		r1 = rf(names, userBase)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// getGroupMemberNames provides a mock function with given fields: groupDn, userBase
+func (_m *MockAPIInterface) getGroupMemberNames(groupDn string, userBase string) ([]string, error) {
+	ret := _m.Called(groupDn, userBase)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, string) []string); ok {
+		r0 = rf(groupDn, userBase)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(groupDn, userBase)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// getMembersManagedByTerraform provides a mock function with given fields: membersFromLdap, membersFromTerraform, ignoreMembersUnknownByTerraform
+func (_m *MockAPIInterface) getMembersManagedByTerraform(membersFromLdap []string, membersFromTerraform []string, ignoreMembersUnknownByTerraform bool) []string {
+	ret := _m.Called(membersFromLdap, membersFromTerraform, ignoreMembersUnknownByTerraform)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func([]string, []string, bool) []string); ok {
+		r0 = rf(membersFromLdap, membersFromTerraform, ignoreMembersUnknownByTerraform)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	return r0
+}
+
 // getOU provides a mock function with given fields: name, baseOU
 func (_m *MockAPIInterface) getOU(name string, baseOU string) (*OU, error) {
 	ret := _m.Called(name, baseOU)
@@ -190,6 +303,20 @@ func (_m *MockAPIInterface) getObject(dn string, attributes []string) (*Object, 
 	return r0, r1
 }
 
+// moveGroup provides a mock function with given fields: newName, oldOU, newOU
+func (_m *MockAPIInterface) moveGroup(newName string, oldOU string, newOU string) error {
+	ret := _m.Called(newName, oldOU, newOU)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(newName, oldOU, newOU)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // moveOU provides a mock function with given fields: cn, baseOU, newOU
 func (_m *MockAPIInterface) moveOU(cn string, baseOU string, newOU string) error {
 	ret := _m.Called(cn, baseOU, newOU)
@@ -197,6 +324,20 @@ func (_m *MockAPIInterface) moveOU(cn string, baseOU string, newOU string) error
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
 		r0 = rf(cn, baseOU, newOU)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// renameGroup provides a mock function with given fields: oldName, baseOu, newName
+func (_m *MockAPIInterface) renameGroup(oldName string, baseOu string, newName string) error {
+	ret := _m.Called(oldName, baseOu, newName)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(oldName, baseOu, newName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -248,6 +389,34 @@ func (_m *MockAPIInterface) updateComputerOU(cn string, ou string, newOU string)
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
 		r0 = rf(cn, ou, newOU)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// updateGroupDescription provides a mock function with given fields: cn, baseOU, description
+func (_m *MockAPIInterface) updateGroupDescription(cn string, baseOU string, description string) error {
+	ret := _m.Called(cn, baseOU, description)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(cn, baseOU, description)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// updateGroupMembers provides a mock function with given fields: cn, baseOU, userBase, oldMembers, newMembers, ignoreMembersUnknownByTerraform
+func (_m *MockAPIInterface) updateGroupMembers(cn string, baseOU string, userBase string, oldMembers []string, newMembers []string, ignoreMembersUnknownByTerraform bool) error {
+	ret := _m.Called(cn, baseOU, userBase, oldMembers, newMembers, ignoreMembersUnknownByTerraform)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, []string, []string, bool) error); ok {
+		r0 = rf(cn, baseOU, userBase, oldMembers, newMembers, ignoreMembersUnknownByTerraform)
 	} else {
 		r0 = ret.Error(0)
 	}

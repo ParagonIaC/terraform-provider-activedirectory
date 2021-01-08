@@ -35,3 +35,4 @@ examples/.*
 *.winfile eol=crlf
 **/testacc.env
 examples/terraform.tfvars
+.gocache/*

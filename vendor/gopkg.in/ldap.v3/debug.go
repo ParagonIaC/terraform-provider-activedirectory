@@ -1,4 +1,4 @@
-package activedirectory
+package ldap
 
 import (
 	"log"

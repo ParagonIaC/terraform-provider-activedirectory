@@ -1,4 +1,4 @@
 /*
-package activedirectory provides basic LDAP v3 functionality.
+Package ldap provides basic LDAP v3 functionality.
 */
-package activedirectory
+package ldap

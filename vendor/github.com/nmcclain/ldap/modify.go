@@ -27,7 +27,7 @@
 // AttributeValue ::= OCTET STRING
 //
 
-package activedirectory
+package ldap
 
 import (
 	"errors"

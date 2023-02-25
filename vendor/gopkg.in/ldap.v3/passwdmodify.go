@@ -3,7 +3,7 @@
 // https://tools.ietf.org/html/rfc3062
 //
 
-package activedirectory
+package ldap
 
 import (
 	"fmt"

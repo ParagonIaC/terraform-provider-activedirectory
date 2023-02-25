@@ -39,7 +39,7 @@
 //  <SPACE>, <SHARP>, and <UTFMB> are defined in [RFC4512].
 //
 
-package activedirectory
+package ldap
 
 import (
 	"bytes"

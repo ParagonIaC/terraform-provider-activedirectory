@@ -3,7 +3,7 @@
 //
 // DelRequest ::= [APPLICATION 10] LDAPDN
 
-package activedirectory
+package ldap
 
 import (
 	"log"

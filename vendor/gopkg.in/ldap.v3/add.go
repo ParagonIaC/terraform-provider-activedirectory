@@ -7,7 +7,7 @@
 //
 // AttributeList ::= SEQUENCE OF attribute Attribute
 
-package activedirectory
+package ldap
 
 import (
 	"log"
